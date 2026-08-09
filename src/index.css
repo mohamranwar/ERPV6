@@ -1,0 +1,789 @@
+@import "tailwindcss";
+
+/* Typefaces are served from the app itself. The previous Google Fonts @import
+   was a render-blocking request to a third-party host: it fails behind a
+   corporate proxy, offline, and inside any sandboxed embed, dropping the whole
+   UI to a default system face with no warning. */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/InstrumentSans-Regular.woff2") format("woff2");
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/InstrumentSans-Bold.woff2") format("woff2");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Bold.woff2") format("woff2");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Inter", "Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Modern enterprise palette: deep indigo (still enterprise) instead of
+     raw navy, a softer sky accent, and a refined slate ramp for surfaces. */
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+  --color-brand-950: #1e1b4b;
+
+  /* Surface ramp — used by the new cards/panels. One notch lighter than the
+     old slate-200/300 mix so cards lift off the canvas without screaming. */
+  --color-surface-0: #ffffff;
+  --color-surface-1: #fafbfc;
+  --color-surface-2: #f4f6fa;
+  --color-surface-3: #eef0f5;
+  --color-surface-4: #e2e6ee;
+
+  /* Subtle elevation shadows. The old `shadow-2xs` was almost invisible;
+     these read as "the card is hovering" without the chunky default shadow. */
+  --shadow-elev-1: 0 1px 2px 0 rgba(15, 23, 42, 0.04),
+    0 1px 1px 0 rgba(15, 23, 42, 0.03);
+  --shadow-elev-2: 0 1px 3px 0 rgba(15, 23, 42, 0.06),
+    0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-elev-3: 0 4px 12px -2px rgba(15, 23, 42, 0.08),
+    0 2px 6px -2px rgba(15, 23, 42, 0.05);
+  --shadow-elev-4: 0 12px 32px -8px rgba(15, 23, 42, 0.18),
+    0 4px 12px -4px rgba(15, 23, 42, 0.08);
+
+  /* Brand-tinted glow used on hover/active for primary buttons. */
+  --shadow-glow-brand: 0 6px 18px -6px rgba(79, 70, 229, 0.45);
+
+  /* ── Semantic status tokens ────────────────────────────────────
+     Named for intent (oos = out-of-stock risk, overstock, healthy,
+     transit, cleared) rather than raw colour, so a theme switch
+     never requires touching component markup. */
+  --color-status-oos-bg:      #fef2f2;
+  --color-status-oos-text:    #b91c1c;
+  --color-status-oos-border:  #fecaca;
+
+  --color-status-overstock-bg:     #fffbeb;
+  --color-status-overstock-text:   #b45309;
+  --color-status-overstock-border: #fef3c7;
+
+  --color-status-healthy-bg:     #ecfdf5;
+  --color-status-healthy-text:   #047857;
+  --color-status-healthy-border: #d1fae5;
+
+  --color-status-transit-bg:     #f0f9ff;
+  --color-status-transit-text:   #0369a1;
+  --color-status-transit-border: #e0f2fe;
+
+  --color-status-cleared-bg:     #f5f3ff;
+  --color-status-cleared-text:   #6d28d9;
+  --color-status-cleared-border: #ede9fe;
+
+  --color-status-neutral-bg:     #f4f6fa;
+  --color-status-neutral-text:   #475569;
+  --color-status-neutral-border: #e6e8ef;
+}
+
+/* ============================================================
+   Base layer
+   ============================================================ */
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  /* High contrast, ultra-legible typography defaults */
+  background-color: var(--color-surface-2);
+  color: #0f172a;
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'calt', 'tnum';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+
+/* Ensure tabular data matrices alignment and high contrast numbers */
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Micro-labels readability tuning */
+.tracking-wider,
+.tracking-widest {
+  word-spacing: 0.12em;
+  letter-spacing: 0.035em;
+}
+
+/* Tap targets. Pointer-coarse devices get a comfortable minimum on anything
+   interactive, without inflating the same controls on a mouse-driven desktop
+   where dense rows are an advantage. */
+@media (pointer: coarse) {
+  button,
+  select,
+  input[type="date"] {
+    min-height: 40px;
+  }
+  button.tap-compact,
+  select.tap-compact {
+    min-height: 32px;
+  }
+}
+
+/* Horizontal table scrolling should feel native on touch, and the scrollbar
+   should be visible enough to advertise that more columns exist. */
+.scroll-x-touch {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+.scroll-x-touch::-webkit-scrollbar {
+  height: 8px;
+}
+.scroll-x-touch::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+.scroll-x-touch::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Slimmer universal scrollbar for the main workbench and sidebars. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.55);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Respect a reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   Table foundation (kept the old class names for compatibility,
+   but the colours and weight are softer so the navy header doesn't
+   dominate the page).
+   ============================================================ */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  text-align: center !important;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-brand-200);
+  border-right: 1px solid #e6e8ef;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.7rem !important;
+  padding: 0.625rem 0.75rem;
+}
+
+.density-compact th {
+  padding: 0.45rem 0.6rem;
+  font-size: 0.66rem !important;
+  text-align: center !important;
+}
+
+td {
+  border-bottom: 1px solid #eef0f5;
+  border-right: 1px solid #f3f5f9;
+  padding: 0.65rem 0.85rem;
+  vertical-align: middle;
+  font-weight: 500;
+  color: #334155;
+  font-size: 0.85rem;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.density-compact td {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* Sticky Column Helpers */
+table th.sticky-col-1,
+table td.sticky-col-1 {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  box-shadow: 2px 0 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+table th.sticky-col-1 {
+  z-index: 35;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  border-right: 1px solid #e6e8ef;
+}
+
+table td.sticky-col-1 {
+  background-color: #ffffff;
+}
+
+table tbody tr:nth-child(even) td.sticky-col-1 {
+  background-color: #fafbfc;
+}
+
+table tbody tr:hover td.sticky-col-1 {
+  background-color: #eef2ff !important;
+}
+
+/* Secondary Sticky Column (when column 1 is a checkbox) */
+table th.sticky-col-2,
+table td.sticky-col-2 {
+  position: sticky;
+  left: 2.5rem;
+  z-index: 20;
+  box-shadow: 2px 0 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+table th.sticky-col-2 {
+  z-index: 35;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  border-right: 1px solid #e6e8ef;
+}
+
+table td.sticky-col-2 {
+  background-color: #ffffff;
+}
+
+table tbody tr:nth-child(even) td.sticky-col-2 {
+  background-color: #fafbfc;
+}
+
+table tbody tr:hover td.sticky-col-2 {
+  background-color: #eef2ff !important;
+}
+
+/* Zebra Striping — slightly more refined than the old #f8fafc */
+table tbody tr:nth-child(even) td {
+  background-color: #fafbfc;
+}
+
+table tbody tr:nth-child(odd) td {
+  background-color: #ffffff;
+}
+
+table tbody tr:hover td {
+  background-color: #eef2ff !important;
+}
+
+/* Table Density Variations */
+.density-comfortable table th,
+.density-comfortable table td,
+table.density-comfortable th,
+table.density-comfortable td {
+  padding: 0.7rem 0.85rem !important;
+  font-size: 0.85rem;
+}
+
+.density-compact table th,
+.density-compact table td,
+table.density-compact th,
+table.density-compact td {
+  padding: 0.35rem 0.6rem !important;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+/* ============================================================
+   Surface & card primitives (the building blocks for the rest
+   of the redesign).
+   ============================================================ */
+.border-sharp {
+  border: 1px solid #e2e6ee !important;
+  border-radius: 0.625rem;
+}
+
+.card-sharp,
+.card-enterprise {
+  background-color: #ffffff;
+  border: 1px solid #e6e8ef;
+  border-radius: 0.875rem;
+  box-shadow: var(--shadow-elev-1);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card-sharp:hover,
+.card-enterprise:hover {
+  border-color: #d6dbe6;
+  box-shadow: var(--shadow-elev-2);
+}
+
+/* New "elevated" card used for KPI tiles and section panels. */
+.card-elevated {
+  background-color: #ffffff;
+  border: 1px solid #e6e8ef;
+  border-radius: 0.875rem;
+  box-shadow: var(--shadow-elev-2);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.card-elevated:hover {
+  box-shadow: var(--shadow-elev-3);
+  border-color: #d6dbe6;
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* ============================================================
+   Form controls — single source of truth for inputs, selects,
+   buttons. Every screen picks these up automatically.
+   ============================================================ */
+.input-base,
+select.input-base,
+input[type="text"].input-base,
+input[type="search"].input-base,
+input[type="number"].input-base,
+input[type="email"].input-base,
+input[type="password"].input-base,
+input[type="url"].input-base,
+input[type="date"].input-base {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #0f172a;
+  background-color: #ffffff;
+  border: 1px solid #d6dbe6;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 0 0 rgba(15, 23, 42, 0.02);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.input-base::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.input-base:hover:not(:disabled) {
+  border-color: #b6bfd0;
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: var(--color-brand-500);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  background-color: #ffffff;
+}
+
+.input-base:disabled {
+  background-color: #f4f6fa;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Primary / secondary button styles.
+   ============================================================ */
+.btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn-base:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  border: 1px solid #4338ca;
+  box-shadow: var(--shadow-glow-brand);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #5457e6 0%, #4338ca 100%);
+  box-shadow: 0 8px 22px -6px rgba(79, 70, 229, 0.55);
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  color: #334155;
+  border: 1px solid #d6dbe6;
+  box-shadow: 0 1px 0 0 rgba(15, 23, 42, 0.02);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #b6bfd0;
+  color: #0f172a;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: #475569;
+  border: 1px solid transparent;
+}
+.btn-ghost:hover:not(:disabled) {
+  background-color: #f1f3f8;
+  color: #0f172a;
+}
+
+.btn-danger {
+  background-color: #ffffff;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.btn-danger:hover:not(:disabled) {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.btn-danger-solid {
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  border: 1px solid #b91c1c;
+  box-shadow: 0 4px 12px -4px rgba(220, 38, 38, 0.45);
+}
+.btn-danger-solid:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e64545 0%, #b91c1c 100%);
+}
+
+.btn-emerald {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  color: #ffffff !important;
+  border: 1px solid #047857;
+  box-shadow: 0 2px 8px -2px rgba(16, 185, 129, 0.4);
+}
+.btn-emerald:hover:not(:disabled) {
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
+  box-shadow: 0 4px 14px -2px rgba(16, 185, 129, 0.55);
+}
+
+.btn-amber {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff !important;
+  border: 1px solid #b45309;
+  box-shadow: 0 2px 8px -2px rgba(245, 158, 11, 0.4);
+}
+.btn-amber:hover:not(:disabled) {
+  background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 4px 14px -2px rgba(245, 158, 11, 0.55);
+}
+
+.btn-sky {
+  background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff !important;
+  border: 1px solid #075985;
+  box-shadow: 0 2px 8px -2px rgba(2, 132, 199, 0.4);
+}
+.btn-sky:hover:not(:disabled) {
+  background: linear-gradient(180deg, #0369a1 0%, #075985 100%);
+  box-shadow: 0 4px 14px -2px rgba(2, 132, 199, 0.55);
+}
+
+.btn-purple {
+  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #ffffff !important;
+  border: 1px solid #6d28d9;
+  box-shadow: 0 2px 8px -2px rgba(139, 92, 246, 0.4);
+}
+.btn-purple:hover:not(:disabled) {
+  background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 4px 14px -2px rgba(139, 92, 246, 0.55);
+}
+
+.btn-teal {
+  background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
+  color: #ffffff !important;
+  border: 1px solid #0f766e;
+  box-shadow: 0 2px 8px -2px rgba(20, 184, 166, 0.4);
+}
+.btn-teal:hover:not(:disabled) {
+  background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+  box-shadow: 0 4px 14px -2px rgba(20, 184, 166, 0.55);
+}
+
+/* ============================================================
+   Pills / badges (replaces the ad-hoc text-[10px] px-1 borders
+   floating around the dashboard).
+   ============================================================ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.pill-brand {
+  background: #eef2ff;
+  color: #4338ca;
+  border-color: #e0e7ff;
+}
+.pill-success {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #d1fae5;
+}
+.pill-warning {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fef3c7;
+}
+.pill-danger {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+.pill-info {
+  background: #f0f9ff;
+  color: #0369a1;
+  border-color: #e0f2fe;
+}
+.pill-muted {
+  background: #f4f6fa;
+  color: #475569;
+  border-color: #e6e8ef;
+}
+.pill-dark {
+  background: #1e1b4b;
+  color: #c7d2fe;
+  border-color: #312e81;
+}
+
+/* Semantic status pills — use these instead of raw colour classes */
+.pill-oos {
+  background: var(--color-status-oos-bg);
+  color: var(--color-status-oos-text);
+  border-color: var(--color-status-oos-border);
+}
+.pill-overstock {
+  background: var(--color-status-overstock-bg);
+  color: var(--color-status-overstock-text);
+  border-color: var(--color-status-overstock-border);
+}
+.pill-healthy {
+  background: var(--color-status-healthy-bg);
+  color: var(--color-status-healthy-text);
+  border-color: var(--color-status-healthy-border);
+}
+.pill-transit {
+  background: var(--color-status-transit-bg);
+  color: var(--color-status-transit-text);
+  border-color: var(--color-status-transit-border);
+}
+.pill-cleared {
+  background: var(--color-status-cleared-bg);
+  color: var(--color-status-cleared-text);
+  border-color: var(--color-status-cleared-border);
+}
+
+/* ============================================================
+   Section heading (used by ContentHeader + screens directly).
+   ============================================================ */
+.section-title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   Focus ring — global.
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   Subtle keyframe utilities used by the new login / empty states.
+   ============================================================ */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+
+/* ============================================================
+   Presentation / management-pack mode
+
+   The dashboard serves two audiences: a live weekly ops board on screen, and
+   a monthly management pack that gets projected in a review or exported to
+   PDF. These rules cover the second case.
+
+   Everything that is interactive or navigational is hidden when printing —
+   a sidebar, a search box and a row of buttons are noise on a printed page
+   and waste the margin. Colour is forced to print so the risk bands survive
+   the trip to PDF; without print-color-adjust most browsers drop background
+   fills and every status badge comes out white.
+   ============================================================ */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+
+  html, body, #root {
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  /* Anything chrome-like disappears: nav, toolbars, buttons, search. */
+  .no-print,
+  #app_sidebar,
+  #nav_backdrop,
+  nav[aria-label="Mobile navigation"] {
+    display: none !important;
+  }
+
+  /* The scrolling workbench becomes one continuous flow. */
+  main, .scroll-x-touch, .overflow-y-auto, .overflow-x-auto {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Keep fills and badge colours. */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Cards must not be split across a page break mid-figure. */
+  .card-elevated,
+  .print-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  .print-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* Sticky table headers position badly in print. */
+  th {
+    position: static !important;
+  }
+}
+
+/* On-screen presentation mode: larger type and calmer chrome for projecting
+   in a room, without needing to actually print. */
+.presentation-mode {
+  background: #ffffff;
+}
+.presentation-mode .pack-figure {
+  font-variant-numeric: tabular-nums;
+}

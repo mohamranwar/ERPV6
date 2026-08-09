@@ -1,0 +1,6 @@
+{
+  "name": "Supply Chain Planner",
+  "description": "A comprehensive supply chain planning application for hygiene-product manufacturing, featuring master data management, interactive BOM editor, sales/production planning, MRP engine, shipment tracking, and plan-vs-actual analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

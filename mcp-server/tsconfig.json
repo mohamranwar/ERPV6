@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    // "bundler" resolution lets this project typecheck the app's own source in
+    // ../src, which uses extensionless relative imports (written for Vite).
+    // esbuild resolves them the same way at bundle time.
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    // strict is on for this server's own code. noUncheckedIndexedAccess is
+    // deliberately NOT enabled: this project compiles the application's source
+    // in ../src too (to reuse its calculation engine), and that code was
+    // written against the app's looser tsconfig. Turning it on flags ~30
+    // pre-existing array-index patterns in working, fully-tested app code.
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
