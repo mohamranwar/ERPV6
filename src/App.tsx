@@ -70,7 +70,7 @@ const SCREEN_META: Record<ScreenID, { title: string; subtitle: string }> = {
   material_inspection: { title: 'Material Inspection', subtitle: 'Detailed material analysis' },
   coverage: { title: 'Stock Coverage', subtitle: 'Runway under stock-only and total metrics' },
   psi: { title: 'PSI Analysis', subtitle: 'Production · Sales · Inventory matrix' },
-  logistics: { title: 'Logistics & Customs', subtitle: 'In-transit, customs, factory ETA' },
+  logistics: { title: 'Purchase Orders (PO)', subtitle: 'In-transit, customs, factory ETA' },
   customs_clearance: { title: 'Customs Clearance', subtitle: 'Port-to-factory cycle tracking' },
   plan_vs_actual: { title: 'Plan vs Actuals', subtitle: 'Variance and achievement analysis' },
   master_data: { title: 'Master Data', subtitle: 'Single source of truth for entities' },
@@ -98,7 +98,7 @@ const NAV_GROUPS: Array<{ label: string; items: Array<{ id: ScreenID; label: str
     items: [
       { id: 'coverage', label: 'Stock Coverage', icon: ClipboardList },
       { id: 'psi', label: 'PSI Analysis', icon: BarChart4 },
-      { id: 'logistics', label: 'Logistics & Customs', icon: Truck },
+      { id: 'logistics', label: 'Purchase Orders (PO)', icon: Truck },
       { id: 'customs_clearance', label: 'Customs Clearance', icon: ShieldCheck },
     ],
   },

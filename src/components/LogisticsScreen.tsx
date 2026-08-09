@@ -383,31 +383,8 @@ export default function LogisticsScreen({
   return (
     <div className="space-y-6" id="logistics_screen">
       <ContentHeader
-        title="Procurement & Logistics Follow-up"
-      >
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={handleExportCSV}
-            className="btn-base btn-emerald gap-1.5 shadow-sm"
-            title="Export shipments report as CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-white" /> Export Report (CSV)
-          </button>
-          <button
-            onClick={handleCreatePo}
-            className="btn-base btn-sky gap-1.5 shadow-sm"
-          >
-            <Plus className="w-4 h-4 text-white" /> Create Purchase Order
-          </button>
-          <button
-            onClick={handleCreateShipment}
-            className="btn-base btn-purple gap-1.5 shadow-sm"
-          >
-            <Ship className="w-4 h-4 text-white" /> Log In-Transit Shipment
-          </button>
-        </div>
-      </ContentHeader>
+        title="Purchase Orders (PO)"
+      />
 
       <ErrorState error={error} onRetry={loadData} />
 
@@ -441,6 +418,32 @@ export default function LogisticsScreen({
           intent={combinedOrders.some(o => o.delay_days > 0) ? 'warning' : 'success'}
           icon={<AlertTriangle className="w-4 h-4" />}
         />
+      </div>
+
+      {/* Action buttons under KPI cards — scaled down size and font by 30% */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={handleExportCSV}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded transition-colors shadow-xs cursor-pointer"
+          title="Export shipments report as CSV"
+        >
+          <Download className="w-3 h-3 text-white" /> Export Report (CSV)
+        </button>
+        <button
+          type="button"
+          onClick={handleCreatePo}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded transition-colors shadow-xs cursor-pointer"
+        >
+          <Plus className="w-3 h-3 text-white" /> Create Purchase Order
+        </button>
+        <button
+          type="button"
+          onClick={handleCreateShipment}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded transition-colors shadow-xs cursor-pointer"
+        >
+          <Ship className="w-3 h-3 text-white" /> Log In-Transit Shipment
+        </button>
       </div>
 
       {/* Control Filters Bar */}
