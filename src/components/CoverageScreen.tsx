@@ -222,12 +222,12 @@ export default function CoverageScreen({
                             )}
                           </td>
                           <td className="px-3 py-2 text-right border-r border-slate-200">
-                            <span className={`px-1.5 py-0.5 rounded-[3px] font-mono text-[10px] ${getBadgeStyle(m.coverage_months_no_transit)}`}>
+                            <span className={`px-2 py-0.5 rounded-[4px] font-mono text-sm font-bold ${getBadgeStyle(m.coverage_months_no_transit)}`}>
                               {m.coverage_months_no_transit} mo
                             </span>
                           </td>
                           <td className={`px-3 py-2 text-right font-bold ${rowColor}`}>
-                            <span className={`px-1.5 py-0.5 rounded-[3px] font-mono text-[10px] font-bold border ${
+                            <span className={`px-2 py-0.5 rounded-[4px] font-mono text-sm font-bold border ${
                               m.coverage_months < 1.0 ? 'border-red-300 bg-red-100 text-red-900' : 
                               m.coverage_months <= 2.0 ? 'border-amber-300 bg-amber-100 text-amber-900' :
                               m.coverage_months <= 3.0 ? 'border-emerald-300 bg-emerald-100 text-emerald-900' : 'border-blue-300 bg-blue-100 text-blue-900'
@@ -286,7 +286,7 @@ export default function CoverageScreen({
                             <span className="text-[9px] text-slate-400 ms-1">{p.uom}</span>
                           </td>
                           <td className={`px-3 py-2 text-right font-bold ${rowColor}`}>
-                            <span className={`px-1.5 py-0.5 rounded-[3px] font-mono text-[10px] font-bold border ${
+                            <span className={`px-2 py-0.5 rounded-[4px] font-mono text-sm font-bold border ${
                               p.coverage_months < 1.0 ? 'border-red-300 bg-red-100 text-red-900' : 
                               p.coverage_months <= 2.0 ? 'border-amber-300 bg-amber-100 text-amber-900' :
                               p.coverage_months <= 3.0 ? 'border-emerald-300 bg-emerald-100 text-emerald-900' : 'border-blue-300 bg-blue-100 text-blue-900'

@@ -442,7 +442,7 @@ export default function FinishedGoodsAnalysis({
           <td className={`px-4 py-3 text-right font-mono text-xs font-bold ${node.metrics.expectedStock < 0 ? 'text-red-600 bg-red-50' : 'text-slate-800'}`}>
             {Math.round(node.metrics.expectedStock).toLocaleString()}
           </td>
-          <td className={`px-4 py-3 text-right font-mono text-xs font-bold ${coverage < 1 ? 'text-red-600 bg-red-50' : coverage > 3 ? 'text-amber-600' : 'text-emerald-600'}`}>
+          <td className={`px-4 py-3 text-right font-mono text-sm font-bold ${coverage < 1 ? 'text-red-600 bg-red-50' : coverage > 3 ? 'text-amber-600' : 'text-emerald-600'}`}>
             {node.metrics.salesForecast > 0 ? `${coverage.toFixed(1)}m` : 'N/A'}
           </td>
           <td className="px-4 py-3 text-right font-mono text-xs font-bold text-slate-900">{CURRENCY} {Math.round(node.metrics.salesValue).toLocaleString()}</td>

@@ -912,7 +912,7 @@ export default function MaterialDrillDown({
                                 <span>Shortage Risk</span>
                               </span>
                               {summary && (
-                                <span className="text-[10px] font-mono text-red-600 font-bold mt-1">
+                                <span className="text-sm font-mono text-red-600 font-bold mt-1">
                                   Cover: {summary.coverageMonths.toFixed(1)} mos
                                 </span>
                               )}
@@ -924,7 +924,7 @@ export default function MaterialDrillDown({
                                 <span>Covered</span>
                               </span>
                               {summary && (
-                                <span className="text-[10px] font-mono text-emerald-700 font-medium mt-1">
+                                <span className="text-sm font-mono text-emerald-700 font-bold mt-1">
                                   Cover: {summary.coverageMonths.toFixed(1)} mos
                                 </span>
                               )}
@@ -1312,7 +1312,7 @@ export default function MaterialDrillDown({
                                 {(p.ending_stock ?? 0).toLocaleString()}
                               </td>
                               <td className="px-5 py-3.5 text-right">
-                                <span className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold ${
+                                <span className={`px-2 py-0.5 rounded-md font-mono text-sm font-bold ${
                                   coverageMonths < 1.0 
                                     ? 'bg-red-100 text-red-700' 
                                     : coverageMonths < 2.0 
