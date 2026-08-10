@@ -8,7 +8,7 @@ import { fetchTableData, saveRecord, deleteRecord } from '../supabaseClient';
 import { Shipment, PurchaseOrder, Material, Supplier } from '../types';
 import { 
   Calendar, CheckSquare, AlertTriangle, Ship, Truck, Plane, Plus, Trash2, Edit2, 
-  RefreshCw, PackageCheck, Globe, MapPin, Clock, ArrowRight, ShieldAlert, FileText, CheckCircle2, Download
+  RefreshCw, PackageCheck, Globe, MapPin, Clock, ArrowRight, ShieldAlert, FileText, CheckCircle2, Download, BarChart2
 } from 'lucide-react';
 import { useToast } from '../context/ToastConfirmContext';
 import { useAuth } from '../context/AuthContext';
@@ -73,6 +73,10 @@ export default function LogisticsScreen({
   const [filterSourcing, setFilterSourcing] = useState<string>('all');
   // Filter by Delay / Status
   const [filterDelay, setFilterDelay] = useState<string>('all');
+  // Filter by Historical Month: 'all' | 'YYYY-MM'
+  const [filterMonth, setFilterMonth] = useState<string>('all');
+  // Toggle for Monthly Historical Database Analysis Table
+  const [showMonthlyBreakdown, setShowMonthlyBreakdown] = useState<boolean>(true);
 
   // Form Modals
   const [showShipmentForm, setShowShipmentForm] = useState(false);
@@ -190,13 +194,91 @@ export default function LogisticsScreen({
     return list;
   }, [purchaseOrders, shipments, materials, suppliers]);
 
+  // Available Months in database records
+  const availableMonths = useMemo(() => {
+    const monthSet = new Set<string>();
+    combinedOrders.forEach(o => {
+      const raw = o.order_date || o.original_delivery_date || '';
+      if (raw && raw.length >= 7) {
+        monthSet.add(raw.slice(0, 7));
+      }
+    });
+    return Array.from(monthSet).sort();
+  }, [combinedOrders]);
+
+  // Monthly Historical Aggregates from Database
+  const monthlyHistoricalData = useMemo(() => {
+    const map: Record<string, {
+      monthKey: string;
+      monthLabel: string;
+      totalOrders: number;
+      totalQty: number;
+      localCount: number;
+      foreignCount: number;
+      delayedCount: number;
+      onTimeCount: number;
+      totalValue: number;
+    }> = {};
+
+    combinedOrders.forEach(o => {
+      const rawDate = o.order_date || o.original_delivery_date || '';
+      const monthKey = (rawDate && rawDate.length >= 7) ? rawDate.slice(0, 7) : 'Unknown';
+
+      if (!map[monthKey]) {
+        let monthLabel = monthKey;
+        if (monthKey !== 'Unknown' && monthKey.includes('-')) {
+          const [y, m] = monthKey.split('-');
+          const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
+          if (!isNaN(dateObj.getTime())) {
+            monthLabel = dateObj.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+          }
+        }
+
+        map[monthKey] = {
+          monthKey,
+          monthLabel,
+          totalOrders: 0,
+          totalQty: 0,
+          localCount: 0,
+          foreignCount: 0,
+          delayedCount: 0,
+          onTimeCount: 0,
+          totalValue: 0
+        };
+      }
+
+      const entry = map[monthKey];
+      entry.totalOrders += 1;
+      entry.totalQty += o.qty || 0;
+      if (o.origin_type === 'local') entry.localCount += 1;
+      else entry.foreignCount += 1;
+
+      if (o.delay_days > 0) entry.delayedCount += 1;
+      else entry.onTimeCount += 1;
+
+      const unitPrice = o.po_ref?.unit_price || 0;
+      entry.totalValue += (o.qty || 0) * unitPrice;
+    });
+
+    return Object.values(map).sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+  }, [combinedOrders]);
+
+  // Orders filtered by selected historical month
+  const monthFilteredOrders = useMemo(() => {
+    if (filterMonth === 'all') return combinedOrders;
+    return combinedOrders.filter(o => {
+      const raw = o.order_date || o.original_delivery_date || '';
+      return raw.startsWith(filterMonth);
+    });
+  }, [combinedOrders, filterMonth]);
+
   // Search & Filter Logic (Rule: Search Query Overrides Categorical Dropdowns)
   const filteredCombinedOrders = useMemo(() => {
-    let result = combinedOrders;
+    let result = monthFilteredOrders;
 
     if (searchQuery.trim() !== '') {
       const q = searchQuery.toLowerCase();
-      return result.filter(item => 
+      return combinedOrders.filter(item => 
         item.order_no.toLowerCase().includes(q) ||
         item.material_name.toLowerCase().includes(q) ||
         item.material_sku.toLowerCase().includes(q) ||
@@ -204,7 +286,7 @@ export default function LogisticsScreen({
       );
     }
 
-    // Apply categorical filters when search is empty
+    // Apply categorical and month filters when search is empty
     if (filterSourcing !== 'all') {
       result = result.filter(item => item.origin_type === filterSourcing);
     }
@@ -216,7 +298,7 @@ export default function LogisticsScreen({
     }
 
     return result;
-  }, [combinedOrders, searchQuery, filterSourcing, filterDelay]);
+  }, [combinedOrders, monthFilteredOrders, searchQuery, filterSourcing, filterDelay]);
 
   // Table Sort
   const { sortedItems: sortedOrders, sortConfig, handleSort } =
@@ -386,65 +468,137 @@ export default function LogisticsScreen({
         title="Purchase Orders (PO)"
       />
 
+      {/* Action Toolbar in separate div - compact button size reduced by 30% */}
+      <div className="flex flex-wrap items-center gap-1.5 -mt-4 mb-2 p-1.5 bg-slate-50/80 rounded-md border border-slate-200/80">
+        <button
+          type="button"
+          onClick={handleExportCSV}
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8.5px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded transition-colors shadow-2xs cursor-pointer"
+          title="Export shipments report as CSV"
+        >
+          <Download className="w-2.5 h-2.5 text-white" /> Export Report (CSV)
+        </button>
+        <button
+          type="button"
+          onClick={handleCreatePo}
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8.5px] font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded transition-colors shadow-2xs cursor-pointer"
+        >
+          <Plus className="w-2.5 h-2.5 text-white" /> Create Purchase Order
+        </button>
+        <button
+          type="button"
+          onClick={handleCreateShipment}
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8.5px] font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded transition-colors shadow-2xs cursor-pointer"
+        >
+          <Ship className="w-2.5 h-2.5 text-white" /> Log In-Transit Shipment
+        </button>
+      </div>
+
       <ErrorState error={error} onRetry={loadData} />
 
-      {/* KPI Cards — shared KpiCard so this screen's tiles match every other
-          screen's rather than carrying their own type scale and shadow. */}
+      {/* KPI Cards — calculated dynamically from historical database records (monthly filterable) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           label="Total Active Orders"
-          value={combinedOrders.length}
-          sub="POs & in-transit records"
+          value={monthFilteredOrders.length}
+          sub={filterMonth === 'all' ? "All historical DB orders" : `DB Month: ${filterMonth}`}
           icon={<FileText className="w-4 h-4" />}
         />
         <KpiCard
           label="Local Deliveries"
-          value={combinedOrders.filter(o => o.origin_type === 'local').length}
+          value={monthFilteredOrders.filter(o => o.origin_type === 'local').length}
           sub="Direct factory delivery, no customs"
           intent="success"
           icon={<MapPin className="w-4 h-4" />}
         />
         <KpiCard
           label="Foreign Imports"
-          value={combinedOrders.filter(o => o.origin_type === 'foreign').length}
+          value={monthFilteredOrders.filter(o => o.origin_type === 'foreign').length}
           sub="Requires port & customs clearance"
           intent="info"
           icon={<Globe className="w-4 h-4" />}
         />
         <KpiCard
           label="Delayed Shipments"
-          value={combinedOrders.filter(o => o.delay_days > 0).length}
+          value={monthFilteredOrders.filter(o => o.delay_days > 0).length}
           sub="Revised date exceeds original"
-          intent={combinedOrders.some(o => o.delay_days > 0) ? 'warning' : 'success'}
+          intent={monthFilteredOrders.some(o => o.delay_days > 0) ? 'warning' : 'success'}
           icon={<AlertTriangle className="w-4 h-4" />}
         />
       </div>
 
-      {/* Action buttons under KPI cards — scaled down size and font by 30% */}
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={handleExportCSV}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded transition-colors shadow-xs cursor-pointer"
-          title="Export shipments report as CSV"
-        >
-          <Download className="w-3 h-3 text-white" /> Export Report (CSV)
-        </button>
-        <button
-          type="button"
-          onClick={handleCreatePo}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded transition-colors shadow-xs cursor-pointer"
-        >
-          <Plus className="w-3 h-3 text-white" /> Create Purchase Order
-        </button>
-        <button
-          type="button"
-          onClick={handleCreateShipment}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded transition-colors shadow-xs cursor-pointer"
-        >
-          <Ship className="w-3 h-3 text-white" /> Log In-Transit Shipment
-        </button>
-      </div>
+      {/* Monthly Historical Database Matrix Card */}
+      {showMonthlyBreakdown && monthlyHistoricalData.length > 0 && (
+        <div className="card-elevated p-4 space-y-3 bg-white border border-slate-200/90 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-sky-600" />
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Monthly Historical Database Breakdown
+              </h3>
+            </div>
+            <span className="text-[11px] font-mono text-slate-500 font-medium">
+              Source: Database purchase_orders & shipments
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 text-left text-xs font-medium">
+              <thead>
+                <tr className="bg-slate-50/90 text-slate-600">
+                  <th className="px-3 py-2 font-semibold">Month</th>
+                  <th className="px-3 py-2 text-right font-semibold">Total Orders</th>
+                  <th className="px-3 py-2 text-right font-semibold">Volume (Units)</th>
+                  <th className="px-3 py-2 text-center font-semibold">Local / Foreign</th>
+                  <th className="px-3 py-2 text-center font-semibold">On-Time / Delayed</th>
+                  <th className="px-3 py-2 text-right font-semibold">Est. Order Value</th>
+                  <th className="px-3 py-2 text-center font-semibold">Filter Mode</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-800 font-mono text-[11px]">
+                {monthlyHistoricalData.map(m => {
+                  const onTimePct = m.totalOrders > 0 ? Math.round((m.onTimeCount / m.totalOrders) * 100) : 0;
+                  const isSelected = filterMonth === m.monthKey;
+                  return (
+                    <tr key={m.monthKey} className={isSelected ? "bg-sky-50/80 font-bold" : "hover:bg-slate-50/80 transition-colors"}>
+                      <td className="px-3 py-2 font-sans font-bold text-slate-900">{m.monthLabel}</td>
+                      <td className="px-3 py-2 text-right font-bold text-slate-900">{m.totalOrders}</td>
+                      <td className="px-3 py-2 text-right font-medium text-slate-700">{m.totalQty.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-center">
+                        <span className="text-emerald-700 font-bold">{m.localCount} Local</span>
+                        <span className="text-slate-400 mx-1">/</span>
+                        <span className="text-sky-700 font-bold">{m.foreignCount} Import</span>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <span className="text-emerald-700 font-bold">{m.onTimeCount} On-time ({onTimePct}%)</span>
+                        {m.delayedCount > 0 && (
+                          <span className="text-amber-600 font-bold ml-1.5">({m.delayedCount} Delayed)</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right font-bold text-slate-900">
+                        ${m.totalValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </td>
+                      <td className="px-3 py-2 text-center font-sans">
+                        <button
+                          type="button"
+                          onClick={() => setFilterMonth(isSelected ? 'all' : m.monthKey)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors cursor-pointer ${
+                            isSelected
+                              ? "bg-sky-700 text-white"
+                              : "bg-slate-100 text-slate-700 hover:bg-sky-100 hover:text-sky-800 border border-slate-200"
+                          }`}
+                        >
+                          {isSelected ? 'Active Month' : 'Select Month'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Control Filters Bar */}
       <div className="card-elevated p-4 space-y-3">
@@ -457,6 +611,33 @@ export default function LogisticsScreen({
           />
 
           <div className="flex flex-wrap items-center gap-3 text-xs font-medium">
+            {/* Monthly Database Historical Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500 font-semibold flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-slate-500" /> Historical Month:
+              </span>
+              <select
+                aria-label="Filter by historical month"
+                value={filterMonth}
+                onChange={(e) => setFilterMonth(e.target.value)}
+                disabled={searchQuery.trim() !== ''}
+                className="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+              >
+                <option value="all">All Historical Months ({combinedOrders.length} orders)</option>
+                {availableMonths.map(mKey => {
+                  const [y, m] = mKey.split('-');
+                  const d = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
+                  const label = isNaN(d.getTime()) ? mKey : d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+                  const count = combinedOrders.filter(o => (o.order_date || o.original_delivery_date || '').startsWith(mKey)).length;
+                  return (
+                    <option key={mKey} value={mKey}>
+                      {label} ({count} DB orders)
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
             {/* Sourcing Filter */}
             <div className="flex items-center gap-1.5">
               <span className="text-slate-500 font-semibold">Origin:</span>
@@ -486,6 +667,16 @@ export default function LogisticsScreen({
                 <option value="on_time">On Time / Early</option>
               </select>
             </div>
+
+            {/* Toggle Monthly Historical Breakdown Table */}
+            <button
+              type="button"
+              onClick={() => setShowMonthlyBreakdown(!showMonthlyBreakdown)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors font-semibold cursor-pointer"
+            >
+              <BarChart2 className="w-3.5 h-3.5 text-sky-600" />
+              {showMonthlyBreakdown ? 'Hide Monthly Table' : 'Show Monthly Table'}
+            </button>
           </div>
         </div>
 
