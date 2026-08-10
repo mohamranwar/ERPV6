@@ -268,11 +268,16 @@ export default function PlanVsActualScreen({
             const plan = activeDataset.reduce((sum, d) => sum + d.plan_qty, 0);
             const act = activeDataset.reduce((sum, d) => sum + d.actual_qty, 0);
             const varQty = act - plan;
-            const ach = plan > 0 ? (act / plan) * 100 : 100;
+            // No plan means there is no ratio to report. This previously
+            // returned 100, so a selection with nothing planned showed a
+            // perfect achievement rate on the summary card -- the most
+            // reassuring number available, for the least informative state.
+            // Line 152 already gets this right by returning null.
+            const ach = plan > 0 ? (act / plan) * 100 : null;
             return (
               <div className="flex items-center gap-2">
                 <h4 className="text-xl font-bold text-slate-900 font-mono">
-                  {ach.toFixed(1)}%
+                  {ach === null ? '\u2014' : `${ach.toFixed(1)}%`}
                 </h4>
                 <span className={`text-xs px-2 py-0.5 rounded-sm font-semibold ${varQty >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
                   {varQty >= 0 ? '+' : ''}{varQty.toLocaleString()}
