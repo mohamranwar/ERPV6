@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { getVPlanVsActual, fetchTableData, getPlanningPeriod, formatPlanningPeriod } from '../supabaseClient';
 import { VPlanVsActual, Product, Machine, Channel } from '../types';
 import { RefreshCw, AlertCircle, Cpu } from 'lucide-react';
@@ -17,6 +18,9 @@ import ContentHeader from './ContentHeader';
 import ErrorState from './ErrorState';
 import DataStateWrapper from './DataStateWrapper';
 import { toCartons, formatQty, unitLabel, type QtyUnit } from '../utils/uom';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
+
 
 interface PlanVsActualScreenProps {
   searchQuery?: string;
@@ -57,7 +61,7 @@ export default function PlanVsActualScreen({
     }
   };
 
-  async function loadData() {
+  async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     setError(null);
     try {
@@ -72,6 +76,9 @@ export default function PlanVsActualScreen({
         fetchTableData<any>('production_actual'),
         fetchTableData<Channel>('channels')
       ]);
+      // A newer load has started (or we unmounted). Discard this
+      // response rather than writing a stale period into state.
+      if (signal.cancelled) return;
 
       // Resolve the Export channel by name rather than a hardcoded id - the
       // literal 'C4' would silently start returning all-zero rows if that
@@ -182,16 +189,15 @@ export default function PlanVsActualScreen({
 
       setExportCompare(exportRows);
     } catch (e) {
+      if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
       console.error("Failed to load plan vs actual comparison datasets", e);
     } finally {
-      setLoading(false);
+      if (!signal.cancelled) setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, [refreshKey]);
+  useAsyncLoad(loadData, [refreshKey]);
 
   const activeDataset = useMemo((): VPlanVsActual[] => {
     if (activeTab === 'sales') return salesCompare;

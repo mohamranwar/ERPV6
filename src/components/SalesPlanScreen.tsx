@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { fetchTableData, saveRecord, getPlanningPeriod } from '../supabaseClient';
 import { Product, Channel, SalesPlan, InventorySnapshot, ProductionPlan } from '../types';
 import { RefreshCw, Save, Sparkles } from 'lucide-react';
@@ -17,6 +18,9 @@ import ContentHeader from './ContentHeader';
 import { toCartons, toPieces, pcsPerCarton, formatQty, unitLabel, type QtyUnit } from '../utils/uom';
 import ErrorState from './ErrorState';
 import DataStateWrapper from './DataStateWrapper';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
+
 
 type GrainType = 'day' | 'week' | 'month';
 
@@ -78,7 +82,7 @@ export default function SalesPlanScreen({
 
   const { hasRole } = useAuth();
 
-  async function loadData() {
+  async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     setError(null);
     try {
@@ -89,6 +93,7 @@ export default function SalesPlanScreen({
         fetchTableData<InventorySnapshot>('inventory_snapshots'),
         fetchTableData<ProductionPlan>('production_plan')
       ]);
+      if (signal.cancelled) return;
       setProducts(prods);
       setChannels(chans);
       setSalesPlans(plans);
@@ -98,16 +103,17 @@ export default function SalesPlanScreen({
       // Default to "All Channels" (empty string)
       setSelectedChannelId('');
     } catch (e: any) {
+      // Superseded loads must not raise a toast for a screen the
+      // user has already navigated away from.
+      if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
       showToast("Sales demand tables failed to load: " + e.message, 'error');
     } finally {
-      setLoading(false);
+      if (!signal.cancelled) setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, [refreshKey]);
+  useAsyncLoad(loadData, [refreshKey]);
 
   // Compute time columns based on active grain
   useEffect(() => {

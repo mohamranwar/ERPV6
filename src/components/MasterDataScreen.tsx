@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { 
   fetchTableData, saveRecord, deleteRecord 
 } from '../supabaseClient';
@@ -22,6 +23,9 @@ import ContentHeader from './ContentHeader';
 import ErrorState from './ErrorState';
 import DataStateWrapper from './DataStateWrapper';
 import EmptyState from './EmptyState';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
+
 
 type TabType = 'products' | 'materials' | 'suppliers' | 'machines' | 'channels' | 'uom_conversions';
 
@@ -115,7 +119,7 @@ export default function MasterDataScreen({
   const editModalRef = useRef<HTMLDivElement>(null);
   useFocusTrap(editModalRef, showForm, () => { setShowForm(false); setEditItem(null); });
 
-  async function loadData() {
+  async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     // Cleared on every attempt, otherwise a single failure leaves the banner
     // pinned to the screen even after a successful retry.
@@ -133,6 +137,7 @@ export default function MasterDataScreen({
         fetchTableData<ProductGroup>('product_groups'),
         fetchTableData<UOMConversion>('uom_conversions')
       ]);
+      if (signal.cancelled) return;
       setProducts(prods);
       setMaterials(mats);
       setSuppliers(sups);
@@ -143,16 +148,15 @@ export default function MasterDataScreen({
       setProdGroups(pgrps);
       setUomConversions(uoms);
     } catch (e) {
+      if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
       console.error("Failed to load master data tables", e);
     } finally {
-      setLoading(false);
+      if (!signal.cancelled) setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, [refreshKey]);
+  useAsyncLoad(loadData, [refreshKey]);
 
   // Reset category filters and selection when switching tab
   useEffect(() => {
