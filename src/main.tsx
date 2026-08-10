@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import { ToastConfirmProvider } from './context/ToastConfirmContext.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
+import { AppTextProvider } from './context/AppTextContext.tsx';
 import './index.css';
 import { runSystemTests } from './utils/tests.ts';
 
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastConfirmProvider>
       <AuthProvider>
-        <App />
+        <AppTextProvider>
+          <App />
+        </AppTextProvider>
       </AuthProvider>
     </ToastConfirmProvider>
   </StrictMode>,

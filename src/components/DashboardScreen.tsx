@@ -9,6 +9,7 @@ import {
   VMaterialCoverage, VProductCoverage, VFGPSIAnalysis, Shipment, ClearanceContainer,
   ClearanceJob, ExportForecast, Product, ProductionActual, SalesActual,
   ProductCategory, Machine, ProductionPlan, PurchaseOrder, SalesPlan, InventorySnapshot,
+  Material,
 } from '../types';
 import {
   BarChart2,
@@ -72,8 +73,8 @@ import {
   RawMaterialStockChart,
   FGStockCoverageChart,
   FGStockVsSalesChart,
-  computeExecutiveChartData,
 } from './ExecutiveCharts';
+import { computeExecutiveChartData, chartCaption } from '../utils/executiveCharts';
 import DashboardCustomizerModal, {
   DEFAULT_WIDGET_CONFIGS,
   BUILTIN_PRESETS,
@@ -324,13 +325,14 @@ export default function DashboardScreen({
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [salesPlans, setSalesPlans] = useState<SalesPlan[]>([]);
   const [inventorySnapshots, setInventorySnapshots] = useState<InventorySnapshot[]>([]);
+  const [materials, setMaterials] = useState<Material[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   async function loadData() {
     setLoading(true);
     setError(null);
     try {
-      const [mCov, pCov, psi, shps, ctrs, jobs, exps, prods, pAct, sAct, cats, macs, pPlans, pos, sPlans, invSnaps] = await Promise.all([
+      const [mCov, pCov, psi, shps, ctrs, jobs, exps, prods, pAct, sAct, cats, macs, pPlans, pos, sPlans, invSnaps, mats] = await Promise.all([
         getVMaterialCoverage(),
         getVProductCoverage(),
         getVFGPSIAnalysis(),
@@ -347,6 +349,7 @@ export default function DashboardScreen({
         fetchTableData<PurchaseOrder>('purchase_orders'),
         fetchTableData<SalesPlan>('sales_plan'),
         fetchTableData<InventorySnapshot>('inventory_snapshots'),
+        fetchTableData<Material>('materials'),
       ]);
       setMaterialCoverages(mCov);
       setProductCoverages(pCov);
@@ -364,6 +367,7 @@ export default function DashboardScreen({
       setPurchaseOrders(pos);
       setSalesPlans(sPlans);
       setInventorySnapshots(invSnaps);
+      setMaterials(mats);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -371,16 +375,17 @@ export default function DashboardScreen({
     }
   }
 
-  const executiveChartData = useMemo(() => {
-    return computeExecutiveChartData(
-      salesPlans,
-      salesActuals,
-      prodPlans,
-      prodActuals,
-      inventorySnapshots,
-      purchaseOrders
-    );
-  }, [salesPlans, salesActuals, prodPlans, prodActuals, inventorySnapshots, purchaseOrders]);
+  const executiveChartData = useMemo(() => computeExecutiveChartData({
+    anchor: getPlanningPeriod(),
+    months: 12,
+    salesPlans,
+    salesActuals,
+    productionPlans: prodPlans,
+    productionActuals: prodActuals,
+    inventory: inventorySnapshots,
+    purchaseOrders,
+    materials,
+  }), [salesPlans, salesActuals, prodPlans, prodActuals, inventorySnapshots, purchaseOrders, materials, refreshKey]);
 
   useEffect(() => {
     loadData();
@@ -784,6 +789,7 @@ export default function DashboardScreen({
         </div>
         <ManagementPack
           period={getPlanningPeriod()}
+          executiveCharts={executiveChartData}
           materialCoverages={materialCoverages}
           productCoverages={productCoverages}
           fgPsi={fgPsi}

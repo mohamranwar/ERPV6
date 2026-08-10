@@ -14,6 +14,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import ManagementPack from '../src/components/ManagementPack';
+import { computeExecutiveChartData } from '../src/utils/executiveCharts';
 import type { VMaterialCoverage, VProductCoverage, VFGPSIAnalysis } from '../src/types';
 
 const material = (over: Partial<VMaterialCoverage>): VMaterialCoverage => ({
@@ -49,6 +50,11 @@ const base = {
   products: [],
   prodActuals: [],
   salesActuals: [],
+  // The six executive charts take real series now. Computing from empty
+  // inputs yields an empty window, which is the point: the pack previously
+  // fell through to a hardcoded seed and rendered demo figures whatever the
+  // database held.
+  executiveCharts: computeExecutiveChartData({ anchor: '2026-08', months: 12 }),
 };
 
 describe('<ManagementPack />', () => {
