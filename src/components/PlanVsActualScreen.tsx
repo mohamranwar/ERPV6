@@ -11,6 +11,7 @@ import { RefreshCw, AlertCircle, Cpu } from 'lucide-react';
 import { useTableFilters } from '../hooks/useTableFilters';
 import { useTableSort } from '../hooks/useTableSort';
 import SortableHeader from './SortableHeader';
+import ChartCard from './charts/ChartCard';
 import EmptyState from './EmptyState';
 import SearchBar from './SearchBar';
 import ScrollableTable from './ScrollableTable';
@@ -205,6 +206,27 @@ export default function PlanVsActualScreen({
     return exportCompare;
   }, [activeTab, salesCompare, productionCompare, exportCompare]);
 
+  /**
+   * Chart cube for the plan-vs-actual chart.
+   *
+   * Top 12 items by planned volume rather than every row: a bar chart over 96
+   * SKUs is unreadable at any size, and the long tail is exactly what the
+   * table below is for. Charting the biggest planned volumes keeps the chart
+   * answering the question a planner actually opens it with -- where did the
+   * volume go.
+   */
+  const chartCube = useMemo(() => {
+    const top = [...activeDataset]
+      .sort((a, b) => b.plan_qty - a.plan_qty)
+      .slice(0, 12);
+    return {
+      periods: top.map(d => d.sku || d.item_name),
+      seriesNames: ['Plan vs actual'],
+      plan: [top.map(d => d.plan_qty)],
+      actual: [top.map(d => d.actual_qty)],
+    };
+  }, [activeDataset]);
+
   const getAchievementColor = (pct: number | null) => {
     if (pct === null) return 'text-slate-500 bg-slate-100 border-slate-200';
     if (pct >= 100) return 'text-emerald-700 bg-emerald-100 border-emerald-200';
@@ -313,6 +335,22 @@ export default function PlanVsActualScreen({
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
+
+      {!loading && activeDataset.length > 0 && (
+        <ChartCard
+          chartId={`plan-vs-actual-${activeTab}`}
+          title={`${activeTab === 'sales' ? 'Sales' : activeTab === 'production' ? 'Production' : 'Export'} — plan vs actual`}
+          subtitle={`Top 12 by planned volume · ${formatPlanningPeriod(period)} · units`}
+          periods={chartCube.periods}
+          seriesNames={chartCube.seriesNames}
+          plan={chartCube.plan}
+          actual={chartCube.actual}
+          unit="units"
+          precision={0}
+          seriesLabel="Items"
+          className="mb-4"
+        />
+      )}
 
       {loading ? (
         <div className="flex justify-center items-center h-48">

@@ -979,7 +979,7 @@ export default function DashboardScreen({
                 <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
                 <ReferenceLine y={1.0} stroke="#ef4444" strokeDasharray="3 3" label={{ value: 'OOS Risk (1.0m)', fill: '#ef4444', fontSize: 9, position: 'insideTopLeft' }} />
                 <ReferenceLine y={3.0} stroke="#0ea5e9" strokeDasharray="3 3" label={{ value: 'Overstock (3.0m)', fill: '#0ea5e9', fontSize: 9, position: 'insideTopLeft' }} />
-                <Bar dataKey="stockOnlyCover" name="Stock-Only Cover" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="stockOnlyCover" name="Stock-Only Cover" fill="#1F707E" radius={[3, 3, 0, 0]} maxBarSize={28} />
                 <Bar dataKey="totalCover" name="Total Cover (w/ Transit & POs)" fill="#10b981" radius={[3, 3, 0, 0]} maxBarSize={28} />
               </BarChart>
             </ResponsiveContainer>
@@ -1075,7 +1075,7 @@ export default function DashboardScreen({
                 />
                 <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
                 <Bar yAxisId="left" dataKey="stock" name="Current Stock (PCS)" fill="#10b981" radius={[3, 3, 0, 0]} maxBarSize={28} />
-                <Bar yAxisId="left" dataKey="forecast" name="Sales Forecast (PCS)" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={28} />
+                <Bar yAxisId="left" dataKey="forecast" name="Sales Forecast (PCS)" fill="#1F707E" radius={[3, 3, 0, 0]} maxBarSize={28} />
                 <Line yAxisId="right" type="monotone" dataKey="coverageMonths" name="Coverage (Months)" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 4 }} />
               </ComposedChart>
             </ResponsiveContainer>
@@ -1208,7 +1208,7 @@ export default function DashboardScreen({
                   formatter={(v: number, n: string) => [`${Math.round(v).toLocaleString()} PCS`, n]}
                 />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="produced" name="Produced" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={26} />
+                <Bar dataKey="produced" name="Produced" fill="#1F707E" radius={[3, 3, 0, 0]} maxBarSize={26} />
                 <Bar dataKey="sold" name="Sold" fill="#10b981" radius={[3, 3, 0, 0]} maxBarSize={26} />
               </BarChart>
             </ResponsiveContainer>
@@ -1347,7 +1347,7 @@ export default function DashboardScreen({
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-                <Bar dataKey="forecast"   name="Forecast"   fill="#6366f1" radius={[3,3,0,0]} maxBarSize={28} />
+                <Bar dataKey="forecast"   name="Forecast"   fill="#1F707E" radius={[3,3,0,0]} maxBarSize={28} />
                 <Bar dataKey="actual"     name="Actuals"    fill="#10b981" radius={[3,3,0,0]} maxBarSize={28} />
                 <Bar dataKey="production" name="Production" fill="#f59e0b" radius={[3,3,0,0]} maxBarSize={28} />
               </BarChart>

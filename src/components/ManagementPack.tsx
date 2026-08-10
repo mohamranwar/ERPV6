@@ -233,7 +233,7 @@ export default function ManagementPack({
             <YAxis tick={AXIS} axisLine={false} tickLine={false} tickFormatter={formatQtyCompact} />
             <Tooltip formatter={(v: number, n: string) => [`${Math.round(v).toLocaleString()} PCS`, n]} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Bar {...chartProps} dataKey="forecast" name="Forecast" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={26} />
+            <Bar {...chartProps} dataKey="forecast" name="Forecast" fill="#1F707E" radius={[3, 3, 0, 0]} maxBarSize={26} />
             <Bar {...chartProps} dataKey="actual" name="Actual" fill="#10b981" radius={[3, 3, 0, 0]} maxBarSize={26} />
             <Bar {...chartProps} dataKey="production" name="Production plan" fill="#f59e0b" radius={[3, 3, 0, 0]} maxBarSize={26} />
           </BarChart>
@@ -257,7 +257,7 @@ export default function ManagementPack({
                 <YAxis tick={AXIS} axisLine={false} tickLine={false} tickFormatter={formatQtyCompact} />
                 <Tooltip formatter={(v: number, n: string) => [`${Math.round(v).toLocaleString()} PCS`, n]} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar {...chartProps} dataKey="produced" name="Produced" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={30} />
+                <Bar {...chartProps} dataKey="produced" name="Produced" fill="#1F707E" radius={[3, 3, 0, 0]} maxBarSize={30} />
                 <Bar {...chartProps} dataKey="sold" name="Sold" fill="#10b981" radius={[3, 3, 0, 0]} maxBarSize={30} />
               </BarChart>
             </ResponsiveContainer>
@@ -299,7 +299,7 @@ export default function ManagementPack({
                 <XAxis type="number" allowDecimals={false} tick={AXIS} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="status" width={88} tick={{ fontSize: 10.5, fill: INK }} axisLine={false} tickLine={false} />
                 <Tooltip formatter={(v: number) => [`${v} orders`, '']} />
-                <Bar {...chartProps} dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} maxBarSize={24} />
+                <Bar {...chartProps} dataKey="count" fill="#1F707E" radius={[0, 4, 4, 0]} maxBarSize={24} />
               </BarChart>
             </ResponsiveContainer>
           )}
