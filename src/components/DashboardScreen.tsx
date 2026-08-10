@@ -77,6 +77,7 @@ import {
 import DashboardCustomizerModal, {
   DEFAULT_WIDGET_CONFIGS,
   BUILTIN_PRESETS,
+  DEFAULT_WIDGET_TITLES,
   type WidgetConfig,
   type DashboardPreset,
 } from './DashboardCustomizerModal';
@@ -932,7 +933,7 @@ export default function DashboardScreen({
               <div>
                 <h3 className="text-[13px] font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                   <Boxes className="w-4 h-4 text-indigo-600" />
-                  Raw Material Stock Coverage by Category
+                  {config?.title ?? DEFAULT_WIDGET_TITLES.rm_cat_coverage}
                 </h3>
                 <p className="text-[11.5px] text-slate-500">Stock-Only vs Total Cover (Months) with In-Transit & Pending POs.</p>
               </div>
@@ -979,7 +980,7 @@ export default function DashboardScreen({
               <div>
                 <h3 className="text-[13px] font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                   <ShoppingBag className="w-4 h-4 text-sky-600" />
-                  Monthly Purchase Orders (PO) & Status Breakdown
+                  {config?.title ?? DEFAULT_WIDGET_TITLES.po_status}
                 </h3>
                 <p className="text-[11.5px] text-slate-500">Monthly PO count, pending orders, and total procurement volume.</p>
               </div>
@@ -1026,7 +1027,7 @@ export default function DashboardScreen({
               <div>
                 <h3 className="text-[13px] font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                   <LayersIcon className="w-4 h-4 text-emerald-600" />
-                  Finished Goods Stock Coverage Matrix by Category
+                  {config?.title ?? DEFAULT_WIDGET_TITLES.fg_cat_matrix}
                 </h3>
                 <p className="text-[11.5px] text-slate-500">Current FG inventory stock (PCS) against sales forecast and coverage months.</p>
               </div>

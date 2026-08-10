@@ -37,9 +37,9 @@ export const DEFAULT_WIDGET_CONFIGS: WidgetConfig[] = [
   { id: 'fg_stk_vs_sales', title: 'FG STK VS Sales Volume', category: 'Executive Charts', visible: true, width: 'half', height: 'md' },
   
   // Additional Analytics
-  { id: 'rm_cat_coverage', title: 'Raw Material Coverage by Category', category: 'Detailed Analytics', visible: true, width: 'half', height: 'md' },
-  { id: 'po_status', title: 'Monthly POs & Procurement Status', category: 'Detailed Analytics', visible: true, width: 'half', height: 'md' },
-  { id: 'fg_cat_matrix', title: 'Finished Goods Coverage Matrix by Category', category: 'Detailed Analytics', visible: true, width: 'half', height: 'md' },
+  { id: 'rm_cat_coverage', title: 'Raw Material Stock Coverage by Category', category: 'Detailed Analytics', visible: true, width: 'half', height: 'md' },
+  { id: 'po_status', title: 'Monthly Purchase Orders (PO) & Status Breakdown', category: 'Detailed Analytics', visible: true, width: 'half', height: 'md' },
+  { id: 'fg_cat_matrix', title: 'Finished Goods Stock Coverage Matrix by Category', category: 'Detailed Analytics', visible: true, width: 'half', height: 'md' },
   { id: 'machine_capacity', title: 'Machine Capacity & Plant Utilization', category: 'Detailed Analytics', visible: true, width: 'half', height: 'md' },
   { id: 'category_achievement', title: 'Sales Achievement by Category Progress', category: 'Detailed Analytics', visible: true, width: 'full', height: 'md' },
   { id: 'container_funnel', title: 'Container Flow & Customs Funnel', category: 'Operations', visible: true, width: 'half', height: 'md' },
@@ -47,6 +47,21 @@ export const DEFAULT_WIDGET_CONFIGS: WidgetConfig[] = [
   { id: 'lowest_materials', title: 'Top 20 Lowest Coverage Materials', category: 'Detailed Analytics', visible: true, width: 'full', height: 'md' },
   { id: 'psi_overview', title: 'PSI Overview (Forecast vs Actuals vs Production)', category: 'Detailed Analytics', visible: true, width: 'full', height: 'md' },
 ];
+
+/**
+ * Widget titles, by id.
+ *
+ * Derived from DEFAULT_WIDGET_CONFIGS rather than written out again: these
+ * titles were previously duplicated as hardcoded <h3> text in
+ * DashboardScreen.renderWidget, and all three of the "Detailed Analytics"
+ * panels had drifted apart from their registry entry. A user toggling
+ * "Raw Material Coverage by Category" in the customiser was shown a panel
+ * headed "Raw Material Stock Coverage by Category".
+ *
+ * One definition, two consumers.
+ */
+export const DEFAULT_WIDGET_TITLES: Record<string, string> =
+  Object.fromEntries(DEFAULT_WIDGET_CONFIGS.map(w => [w.id, w.title]));
 
 export const BUILTIN_PRESETS: DashboardPreset[] = [
   {
