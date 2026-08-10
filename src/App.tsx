@@ -31,6 +31,8 @@ const WhatIfSimulator = lazy(() => import('./components/WhatIfSimulator'));
 const ExportForecastScreen = lazy(() => import('./components/ExportForecastScreen'));
 const MRPScreen = lazy(() => import('./components/MRPScreen'));
 const CustomsClearanceScreen = lazy(() => import('./components/CustomsClearanceScreen'));
+const SettingsScreen = lazy(() => import('./components/SettingsScreen'));
+const MonthCloseContainer = lazy(() => import('./components/MonthCloseContainer'));
 
 // Icons
 import {
@@ -39,6 +41,7 @@ import {
   LineChart, FolderGit2, Truck, BarChart4, ClipboardList, Upload,
   ChevronLeft, ChevronRight, UserCircle2, CalendarRange, Menu, X,
   Download, Maximize2, Minimize2, Box, Sparkles, Globe, Search,
+  Lock,
 } from 'lucide-react';
 
 type ScreenID =
@@ -57,9 +60,13 @@ type ScreenID =
   | 'plan_vs_actual'
   | 'master_data'
   | 'csv_importer'
-  | 'what_if';
+  | 'what_if'
+  | 'settings'
+  | 'month_close';
 
 const SCREEN_META: Record<ScreenID, { title: string; subtitle: string }> = {
+  settings: { title: 'Settings', subtitle: 'Labels, thresholds, calendar and formats' },
+  month_close: { title: 'Month Close', subtitle: 'Freeze a period so history stops moving' },
   dashboard: { title: 'SC KPIs Dashboard', subtitle: 'Supply chain pulse at a glance' },
   bom: { title: 'BOM', subtitle: 'Bill of materials & cost engine' },
   sales_plan: { title: 'Sales Demand Plan', subtitle: 'Channel-aware forecasting' },
@@ -108,6 +115,8 @@ const NAV_GROUPS: Array<{ label: string; items: Array<{ id: ScreenID; label: str
       { id: 'plan_vs_actual', label: 'Plan vs Actuals', icon: LineChart },
       { id: 'master_data', label: 'Master Data', icon: FolderGit2 },
       { id: 'csv_importer', label: 'Import Hub', icon: Upload },
+      { id: 'month_close', label: 'Month Close', icon: Lock },
+      { id: 'settings', label: 'Settings', icon: Settings },
     ],
   },
 ];
@@ -257,6 +266,10 @@ export default function App() {
               return <GlobalCsvImporter onClose={() => setActiveScreen('dashboard')} refreshKey={refreshKey} />;
             case 'what_if':
               return <WhatIfSimulator searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} onNavigate={setActiveScreen} refreshKey={refreshKey} />;
+            case 'settings':
+              return <SettingsScreen />;
+            case 'month_close':
+              return <MonthCloseContainer refreshKey={refreshKey} />;
             default:
               return <DashboardScreen searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} onNavigate={setActiveScreen} refreshKey={refreshKey} />;
           }

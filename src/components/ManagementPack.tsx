@@ -36,9 +36,20 @@ import {
   FGStockCoverageChart,
   FGStockVsSalesChart,
 } from './ExecutiveCharts';
+import { chartCaption, type ExecutiveChartData } from '../utils/executiveCharts';
 
 interface ManagementPackProps {
   period: string;
+  /**
+   * Executive chart series, computed from live rows.
+   *
+   * These six charts previously rendered with no data prop at all and fell
+   * through to a hardcoded seed inside ExecutiveCharts.tsx -- so the
+   * board-review pack showed demo figures in every state of the database,
+   * under a note asserting a fixed date range. The prop is required so that
+   * cannot silently regress.
+   */
+  executiveCharts: ExecutiveChartData;
   materialCoverages: VMaterialCoverage[];
   productCoverages: VProductCoverage[];
   fgPsi: VFGPSIAnalysis[];
@@ -71,7 +82,7 @@ function Section({ title, note, children }: { title: string; note?: string; chil
 }
 
 export default function ManagementPack({
-  period, materialCoverages, productCoverages, fgPsi,
+  period, executiveCharts, materialCoverages, productCoverages, fgPsi,
   salesAchievement, hasSalesActuals,
   shipments, containers, exportOrders, products, prodActuals, salesActuals,
 }: ManagementPackProps) {
@@ -196,15 +207,15 @@ export default function ManagementPack({
       {/* Executive Strategic Horizon Trends (6 Core Management Charts) */}
       <Section
         title="Executive Strategic Horizon Trends — Sales, Production, Material & Finished Goods Coverage"
-        note="Multi-month planning horizon graphs (June 2025 – May 2026) for C-suite and Board review."
+        note={chartCaption(executiveCharts, 'Planning horizon for C-suite and Board review')}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SalesByPcsChart height={220} />
-          <ProductionByPcsChart height={220} />
-          <RawMaterialCoverageChart height={220} />
-          <RawMaterialStockChart height={220} />
-          <FGStockCoverageChart height={220} />
-          <FGStockVsSalesChart height={220} />
+          <SalesByPcsChart data={executiveCharts.salesByPcs} height={220} />
+          <ProductionByPcsChart data={executiveCharts.productionByPcs} height={220} />
+          <RawMaterialCoverageChart data={executiveCharts.rmCoverageMonths} height={220} />
+          <RawMaterialStockChart data={executiveCharts.rmStockUsagePo} height={220} />
+          <FGStockCoverageChart data={executiveCharts.fgStockCoverage} height={220} />
+          <FGStockVsSalesChart data={executiveCharts.fgStkVsSales} height={220} />
         </div>
       </Section>
 
