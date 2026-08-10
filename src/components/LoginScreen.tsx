@@ -68,7 +68,7 @@ export default function LoginScreen() {
     <div
       className="flex h-screen w-full overflow-hidden bg-surface-2"
       id="login_screen"
-      style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 60%, #e0e7ff 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #ECF6F7 60%, #D2E9EC 100%)' }}
     >
       {/* Left — hero panel */}
       <motion.div
