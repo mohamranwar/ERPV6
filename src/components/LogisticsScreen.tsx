@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { fetchTableData, saveRecord, deleteRecord } from '../supabaseClient';
 import { Shipment, PurchaseOrder, Material, Supplier } from '../types';
 import { 
@@ -23,6 +24,9 @@ import DataStateWrapper from './DataStateWrapper';
 import ErrorState from './ErrorState';
 import { exportToCsv } from '../utils/csv';
 import { KpiCard } from './ui';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
+
 
 /**
  * A purchase order and a shipment presented as one follow-up row.
@@ -96,7 +100,7 @@ export default function LogisticsScreen({
   useFocusTrap(poModalRef, showPoForm, () => setShowPoForm(false));
   useFocusTrap(shipmentModalRef, showShipmentForm, () => setShowShipmentForm(false));
 
-  async function loadData() {
+  async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     setError(null);
     try {
@@ -106,21 +110,21 @@ export default function LogisticsScreen({
         fetchTableData<Material>('materials'),
         fetchTableData<Supplier>('suppliers')
       ]);
+      if (signal.cancelled) return;
       setShipments(shps);
       setPurchaseOrders(pos);
       setMaterials(mats);
       setSuppliers(sups);
     } catch (e) {
+      if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
       console.error("Logistics database fetch failed", e);
     } finally {
-      setLoading(false);
+      if (!signal.cancelled) setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, [refreshKey]);
+  useAsyncLoad(loadData, [refreshKey]);
 
   // Combined Order View Items (Merging POs and Shipments)
   const combinedOrders = useMemo(() => {

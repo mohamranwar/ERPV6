@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
   fetchTableData,
@@ -54,6 +55,9 @@ import { toCartons, formatQty, formatDual, pcsPerCarton } from '../utils/uom';
 import { buildAllocations, availableForOrder, claimsByCountry } from '../utils/allocation';
 import ErrorState from './ErrorState';
 import DataStateWrapper from './DataStateWrapper';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
+
 
 /** Ordered by how far through fulfilment a SKU is. */
 const LINE_STATUSES: ExportLineStatus[] = [
@@ -175,7 +179,7 @@ export default function ExportForecastScreen({
   const { showToast, confirm: askConfirm } = useToast();
   const { hasRole } = useAuth();
 
-  async function loadData() {
+  async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     setError(null);
     try {
@@ -189,6 +193,7 @@ export default function ExportForecastScreen({
         fetchTableData<SalesPlan>('sales_plan'),
         fetchTableData<Channel>('channels'),
       ]);
+      if (signal.cancelled) return;
       setExportList(exportsData);
       setProducts(prodsData);
       setInventory(invData);
@@ -196,16 +201,17 @@ export default function ExportForecastScreen({
       setSalesPlans(salesPlanData);
       setChannels(channelData);
     } catch (err: any) {
+      // Superseded loads must not raise a toast for a screen the
+      // user has already navigated away from.
+      if (signal.cancelled) return;
       setError(err instanceof Error ? err.message : String(err));
       showToast('Failed to load export forecast records: ' + (err.message || err), 'error');
     } finally {
-      setLoading(false);
+      if (!signal.cancelled) setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, [refreshKey]);
+  useAsyncLoad(loadData, [refreshKey]);
 
   // Map for fast product lookup
   const productMap = useMemo(() => {

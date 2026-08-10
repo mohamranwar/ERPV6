@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { fetchTableData, saveRecord, getVProductCoverage, getPlanningPeriod } from '../supabaseClient';
 import { Product, Machine, ProductionPlan, SalesPlan, InventorySnapshot } from '../types';
 import { Cpu, RefreshCw, Sparkles, Save, Download, Table, BarChart3, AlertTriangle, Gauge, Layers, TrendingUp } from 'lucide-react';
@@ -19,6 +20,9 @@ import ErrorState from './ErrorState';
 import DataStateWrapper from './DataStateWrapper';
 import EmptyState from './EmptyState';
 import { KpiCard } from './ui';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
+
 
 type GrainType = 'day' | 'week' | 'month';
 
@@ -78,7 +82,7 @@ export default function ProductionPlanScreen({
     }
   };
 
-  async function loadData() {
+  async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     setError(null);
     try {
@@ -87,6 +91,10 @@ export default function ProductionPlanScreen({
         fetchTableData<Machine>('machines'),
         fetchTableData<ProductionPlan>('production_plan')
       ]);
+      // A newer load has started (or we unmounted). Discard this
+      // response rather than writing a stale period into state.
+      if (signal.cancelled) return;
+      if (signal.cancelled) return;
       setProducts(prods);
       setMachines(macs);
       setProductionPlans(plans);
@@ -94,13 +102,11 @@ export default function ProductionPlanScreen({
       setError(e instanceof Error ? e.message : String(e));
       showToast("Failed to load production plan dependencies: " + e.message, 'error');
     } finally {
-      setLoading(false);
+      if (!signal.cancelled) setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, [refreshKey]);
+  useAsyncLoad(loadData, [refreshKey]);
 
   // Sync columns based on grain
   useEffect(() => {

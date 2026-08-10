@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { getVMaterialCoverage, getVProductCoverage, getPlanningPeriod, formatPlanningPeriod } from '../supabaseClient';
 import { VMaterialCoverage, VProductCoverage } from '../types';
 import { Layers, Package, RefreshCw } from 'lucide-react';
@@ -12,6 +13,9 @@ import SearchBar from './SearchBar';
 import ScrollableTable from './ScrollableTable';
 import ContentHeader from './ContentHeader';
 import DataStateWrapper from './DataStateWrapper';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
+
 
 interface CoverageScreenProps {
   searchQuery?: string;
@@ -37,7 +41,7 @@ export default function CoverageScreen({
   const [error, setError] = useState<string | null>(null);
   const [demandBasis, setDemandBasis] = useState<'forecast' | 'sales'>('forecast');
 
-  async function loadData() {
+  async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     setError(null);
     try {
@@ -45,18 +49,18 @@ export default function CoverageScreen({
         getVMaterialCoverage(demandBasis),
         getVProductCoverage(demandBasis)
       ]);
+      if (signal.cancelled) return;
       setMaterialCoverages(mCov);
       setProductCoverages(pCov);
     } catch (e) {
+      if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : 'Failed to fetch inventory coverage details.');
     } finally {
-      setLoading(false);
+      if (!signal.cancelled) setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, [demandBasis, refreshKey]);
+  useAsyncLoad(loadData, [demandBasis, refreshKey]);
 
   const getCoverageRowColor = (months: number) => {
     if (months < 1.0) return 'bg-red-50 text-red-900 border-red-200'; // OOS

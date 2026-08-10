@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { getVMaterialCoverage, getVProductCoverage, getVFGPSIAnalysis, getPlanningPeriod, fetchTableData, isInPeriod } from '../supabaseClient';
 import {
   VMaterialCoverage, VProductCoverage, VFGPSIAnalysis, Shipment, ClearanceContainer,
@@ -76,12 +77,15 @@ import {
 } from './ExecutiveCharts';
 import { computeExecutiveChartData, chartCaption } from '../utils/executiveCharts';
 import DashboardCustomizerModal, {
+
   DEFAULT_WIDGET_CONFIGS,
   BUILTIN_PRESETS,
   DEFAULT_WIDGET_TITLES,
   type WidgetConfig,
   type DashboardPreset,
 } from './DashboardCustomizerModal';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
 
 interface DashboardScreenProps {
   searchQuery?: string;
@@ -328,7 +332,7 @@ export default function DashboardScreen({
   const [materials, setMaterials] = useState<Material[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadData() {
+  async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     setError(null);
     try {
@@ -351,6 +355,10 @@ export default function DashboardScreen({
         fetchTableData<InventorySnapshot>('inventory_snapshots'),
         fetchTableData<Material>('materials'),
       ]);
+      // A newer load has started (or we unmounted). Discard this
+      // response rather than writing a stale period into state.
+      if (signal.cancelled) return;
+      if (signal.cancelled) return;
       setMaterialCoverages(mCov);
       setProductCoverages(pCov);
       setFgPsi(psi);
@@ -369,9 +377,10 @@ export default function DashboardScreen({
       setInventorySnapshots(invSnaps);
       setMaterials(mats);
     } catch (e) {
+      if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setLoading(false);
+      if (!signal.cancelled) setLoading(false);
     }
   }
 
@@ -387,9 +396,7 @@ export default function DashboardScreen({
     materials,
   }), [salesPlans, salesActuals, prodPlans, prodActuals, inventorySnapshots, purchaseOrders, materials, refreshKey]);
 
-  useEffect(() => {
-    loadData();
-  }, [refreshKey]);
+  useAsyncLoad(loadData, [refreshKey]);
 
   // Rule 2A: Search query overrides category/status dropdown filters
   const { filtered: filteredMaterialCoverages, hasActiveSearch } = useTableFilters<VMaterialCoverage>(
