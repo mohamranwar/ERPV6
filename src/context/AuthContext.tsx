@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { fetchTableData } from '../supabaseClient';
 import { AppUser, UserRole } from '../types';
+import { resetLoadedScreens } from '../hooks/useFirstLoad';
 
 const STORAGE_CURRENT_USER_KEY = 'sc_planner_current_user_id';
 
@@ -64,6 +65,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_CURRENT_USER_KEY);
+    // Screens remember, at module scope, that they have rendered real content
+    // before -- so they replace it in place on revisit instead of blanking to
+    // a skeleton. That assumption belongs to the session, not the app: without
+    // clearing it, the next user to sign in would skip the first-load skeleton
+    // on screens they have never actually opened.
+    resetLoadedScreens();
     setCurrentUserId(null);
   }, []);
 

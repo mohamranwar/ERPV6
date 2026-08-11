@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { fetchTableData, saveRecord, deleteRecord } from '../supabaseClient';
 import { Shipment, PurchaseOrder, Material, Supplier } from '../types';
@@ -71,7 +72,7 @@ export default function LogisticsScreen({
   const [materials, setMaterials] = useState<Material[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('logistics');
   const [error, setError] = useState<string | null>(null);
 
   // Filter by Sourcing: 'all' | 'local' | 'foreign'
@@ -121,7 +122,7 @@ export default function LogisticsScreen({
       setError(e instanceof Error ? e.message : String(e));
       console.error("Logistics database fetch failed", e);
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 

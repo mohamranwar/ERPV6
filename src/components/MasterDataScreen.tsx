@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { 
   fetchTableData, saveRecord, deleteRecord 
@@ -87,7 +88,7 @@ export default function MasterDataScreen({
   const { hasRole } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('materials');
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('master_data');
   const [error, setError] = useState<string | null>(null);
 
   // Data states
@@ -153,7 +154,7 @@ export default function MasterDataScreen({
       setError(e instanceof Error ? e.message : String(e));
       console.error("Failed to load master data tables", e);
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 
@@ -415,7 +416,7 @@ export default function MasterDataScreen({
       showToast("Import error: " + err.message, "error");
     } finally {
       setLoading(false);
-      setHasLoadedOnce(true);
+      markLoaded();
     }
   };
 
@@ -701,7 +702,7 @@ export default function MasterDataScreen({
         </div>
       )}
 
-      {(loading && !hasLoadedOnce) ? (
+      {(loading && isFirstLoad) ? (
         <div className="flex justify-center items-center h-48">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>

@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { getVPlanVsActual, fetchTableData, getPlanningPeriod, formatPlanningPeriod } from '../supabaseClient';
 import { VPlanVsActual, Product, Machine, Channel } from '../types';
@@ -43,7 +44,7 @@ export default function PlanVsActualScreen({
   const [productionCompare, setProductionCompare] = useState<VPlanVsActual[]>([]);
   const [exportCompare, setExportCompare] = useState<VPlanVsActual[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('plan_vs_actual');
   const [error, setError] = useState<string | null>(null);
 
   // Machine metrics
@@ -195,7 +196,7 @@ export default function PlanVsActualScreen({
       setError(e instanceof Error ? e.message : String(e));
       console.error("Failed to load plan vs actual comparison datasets", e);
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 
@@ -359,7 +360,7 @@ export default function PlanVsActualScreen({
         />
       )}
 
-      {(loading && !hasLoadedOnce) ? (
+      {(loading && isFirstLoad) ? (
         <div className="flex justify-center items-center h-48">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>

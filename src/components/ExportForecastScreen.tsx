@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
@@ -103,7 +104,7 @@ export default function ExportForecastScreen({
   const [salesPlans, setSalesPlans] = useState<SalesPlan[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('export_forecast');
   const [error, setError] = useState<string | null>(null);
   const [syncing, setSyncing] = useState<boolean>(false);
 
@@ -208,7 +209,7 @@ export default function ExportForecastScreen({
       setError(err instanceof Error ? err.message : String(err));
       showToast('Failed to load export forecast records: ' + (err.message || err), 'error');
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 

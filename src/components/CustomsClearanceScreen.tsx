@@ -10,6 +10,7 @@
  * - Landed-cost charge lines (report only — does not affect BOM costs, decision 2)
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import {
   fetchTableData, saveRecord
 } from '../supabaseClient';
@@ -87,7 +88,7 @@ export default function CustomsClearanceScreen() {
   const [materials, setMaterials]     = useState<Material[]>([]);
   const [suppliers, setSuppliers]     = useState<Supplier[]>([]);
   const [loading, setLoading]         = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('customs');
   const [error, setError]             = useState<string | null>(null);
 
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
@@ -118,7 +119,7 @@ export default function CustomsClearanceScreen() {
       setError('Failed to load clearance data.');
     } finally {
       setLoading(false);
-      setHasLoadedOnce(true);
+      markLoaded();
     }
   }
 
@@ -184,7 +185,7 @@ export default function CustomsClearanceScreen() {
 
   // ── render ────────────────────────────────────────────────────────────
   return (
-    <DataStateWrapper loading={loading && !hasLoadedOnce} error={error} isEmpty={!loading && jobs.length === 0}
+    <DataStateWrapper loading={loading && isFirstLoad} error={error} isEmpty={!loading && jobs.length === 0}
       emptyMessage="No clearance jobs yet — create one to start tracking a shipment through customs."
       onRetry={loadData}
     >

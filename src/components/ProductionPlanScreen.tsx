@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { fetchTableData, saveRecord, getVProductCoverage, getPlanningPeriod } from '../supabaseClient';
 import { Product, Machine, ProductionPlan, SalesPlan, InventorySnapshot } from '../types';
@@ -41,7 +42,7 @@ export default function ProductionPlanScreen({
   const [machines, setMachines] = useState<Machine[]>([]);
   const [productionPlans, setProductionPlans] = useState<ProductionPlan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('production_plan');
   const [error, setError] = useState<string | null>(null);
 
   // Screen Tabs
@@ -103,7 +104,7 @@ export default function ProductionPlanScreen({
       setError(e instanceof Error ? e.message : String(e));
       showToast("Failed to load production plan dependencies: " + e.message, 'error');
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 
@@ -198,7 +199,7 @@ export default function ProductionPlanScreen({
       showToast("Save failed: " + err.message, "error");
     } finally {
       setLoading(false);
-      setHasLoadedOnce(true);
+      markLoaded();
     }
   };
 
@@ -645,7 +646,7 @@ export default function ProductionPlanScreen({
         </div>
       </div>
 
-      {(loading && !hasLoadedOnce) ? (
+      {(loading && isFirstLoad) ? (
         <div className="flex justify-center items-center h-48">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>

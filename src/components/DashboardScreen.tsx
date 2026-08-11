@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { getVMaterialCoverage, getVProductCoverage, getVFGPSIAnalysis, getPlanningPeriod, fetchTableData, isInPeriod } from '../supabaseClient';
 import {
   VMaterialCoverage, VProductCoverage, VFGPSIAnalysis, Shipment, ClearanceContainer,
@@ -102,7 +103,7 @@ export default function DashboardScreen({
   const [productCoverages, setProductCoverages] = useState<VProductCoverage[]>([]);
   const [fgPsi, setFgPsi] = useState<VFGPSIAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('dashboard');
   const [presentationMode, setPresentationMode] = useState(false);
   const [customizerOpen, setCustomizerOpen] = useState(false);
 
@@ -379,7 +380,7 @@ export default function DashboardScreen({
       if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 
@@ -761,7 +762,7 @@ export default function DashboardScreen({
     return [...acc.values()].sort((a, b) => b.produced - a.produced);
   }, [prodActuals, salesActuals, productById]);
 
-  if (loading && !hasLoadedOnce) {
+  if (loading && isFirstLoad) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="flex items-center justify-between">

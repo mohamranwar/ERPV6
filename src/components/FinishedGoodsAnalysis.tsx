@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import {
   fetchTableData, getPlanningPeriod, getPlannedPeriods, formatPlanningPeriod,
   getVFGPSIAnalysis, isInPeriod
@@ -58,7 +59,7 @@ export default function FinishedGoodsAnalysis({
   const [salesActuals, setSalesActuals] = useState<SalesActual[]>([]);
   const [productionActuals, setProductionActuals] = useState<ProductionActual[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('fg_analysis');
   const [error, setError] = useState<string | null>(null);
 
   // Filters & Options
@@ -129,7 +130,7 @@ export default function FinishedGoodsAnalysis({
       showToast('Failed to load PSI Analysis data: ' + e.message, 'error');
     } finally {
       setLoading(false);
-      setHasLoadedOnce(true);
+      markLoaded();
     }
   }
 
@@ -576,7 +577,7 @@ export default function FinishedGoodsAnalysis({
         </button>
       </div>
 
-      {(loading && !hasLoadedOnce) ? (
+      {(loading && isFirstLoad) ? (
         <div className="flex justify-center items-center h-48 bg-white border border-slate-100 rounded-xl">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>

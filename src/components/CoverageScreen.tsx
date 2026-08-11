@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { getVMaterialCoverage, getVProductCoverage, getPlanningPeriod, formatPlanningPeriod } from '../supabaseClient';
 import { VMaterialCoverage, VProductCoverage } from '../types';
@@ -35,7 +36,7 @@ export default function CoverageScreen({
   const [materialCoverages, setMaterialCoverages] = useState<VMaterialCoverage[]>([]);
   const [productCoverages, setProductCoverages] = useState<VProductCoverage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('coverage');
   // A failed load used to be swallowed into console.error, so the screen
   // rendered an empty table and a planner could not tell "the database is
   // unreachable" from "there is genuinely no coverage data".
@@ -57,7 +58,7 @@ export default function CoverageScreen({
       if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : 'Failed to fetch inventory coverage details.');
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 
@@ -129,7 +130,7 @@ export default function CoverageScreen({
       {/* The header and tab switcher stay mounted so the screen keeps its
           identity while data is loading, failing or empty. */}
       <DataStateWrapper
-        loading={loading && !hasLoadedOnce}
+        loading={loading && isFirstLoad}
         error={error}
         isEmpty={!loading && !error && materialCoverages.length === 0 && productCoverages.length === 0}
         onRetry={loadData}
@@ -181,7 +182,7 @@ export default function CoverageScreen({
         </div>
       </div>
 
-      {(loading && !hasLoadedOnce) ? (
+      {(loading && isFirstLoad) ? (
         <div className="flex justify-center items-center h-48">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>

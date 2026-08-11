@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import {
   fetchTableData,
@@ -71,7 +72,7 @@ export default function MRPScreen({
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [mrpResults, setMrpResults] = useState<MRPResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('mrp');
   const [error, setError] = useState<string | null>(null);
   const [showWhatIf, setShowWhatIf] = useState(false);
 
@@ -155,7 +156,7 @@ export default function MRPScreen({
       setError(e instanceof Error ? e.message : String(e));
       showToast('Failed to load MRP data: ' + e.message, 'error');
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 
@@ -807,7 +808,7 @@ export default function MRPScreen({
         </div>
       )}
 
-      {(loading && !hasLoadedOnce) ? (
+      {(loading && isFirstLoad) ? (
         <div className="flex justify-center items-center h-48 bg-white border border-slate-100 rounded-xl">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>

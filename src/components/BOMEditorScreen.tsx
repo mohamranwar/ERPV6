@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { 
   fetchTableData, saveRecord, deleteRecord, 
   getVBOMCostDetail, getVFGCost, createProductAndBOM 
@@ -92,7 +93,7 @@ export default function BOMEditorScreen({
   const [fgCost, setFgCost] = useState<VFGCost | null>(null);
 
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('bom');
 
   const [error, setError] = useState<string | null>(null);
 
@@ -201,7 +202,7 @@ export default function BOMEditorScreen({
       console.error("Failed to load active BOM", e);
     } finally {
       setLoading(false);
-      setHasLoadedOnce(true);
+      markLoaded();
     }
   }
 
@@ -532,7 +533,7 @@ export default function BOMEditorScreen({
 
       <ErrorState error={error} onRetry={loadActiveBOM} />
 
-      {(loading && !hasLoadedOnce) ? (
+      {(loading && isFirstLoad) ? (
         <div className="flex justify-center items-center h-48">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>

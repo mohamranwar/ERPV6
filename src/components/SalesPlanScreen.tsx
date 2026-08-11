@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useFirstLoad } from '../hooks/useFirstLoad';
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { fetchTableData, saveRecord, getPlanningPeriod } from '../supabaseClient';
 import { Product, Channel, SalesPlan, InventorySnapshot, ProductionPlan } from '../types';
@@ -41,7 +42,7 @@ export default function SalesPlanScreen({
   const [inventorySnapshots, setInventorySnapshots] = useState<InventorySnapshot[]>([]);
   const [productionPlans, setProductionPlans] = useState<ProductionPlan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { isFirstLoad, markLoaded } = useFirstLoad('sales_plan');
   const [error, setError] = useState<string | null>(null);
 
   // Filter conditions
@@ -110,7 +111,7 @@ export default function SalesPlanScreen({
       setError(e instanceof Error ? e.message : String(e));
       showToast("Sales demand tables failed to load: " + e.message, 'error');
     } finally {
-      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
+      if (!signal.cancelled) { setLoading(false); markLoaded(); }
     }
   }
 
@@ -250,7 +251,7 @@ export default function SalesPlanScreen({
       showToast("Save failed: " + err.message, "error");
     } finally {
       setLoading(false);
-      setHasLoadedOnce(true);
+      markLoaded();
     }
   };
 
@@ -443,7 +444,7 @@ export default function SalesPlanScreen({
         </button>
       </div>
 
-      {(loading && !hasLoadedOnce) ? (
+      {(loading && isFirstLoad) ? (
         <div className="flex justify-center items-center h-48">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
