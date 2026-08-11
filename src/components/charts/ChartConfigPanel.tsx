@@ -298,13 +298,21 @@ const STORE_KEY = 'sc_planner_chart_configs';
  * new option arrives with its shipped value instead of `undefined`, which
  * would render as a blank axis or a zero-height chart.
  */
-export function loadChartConfig(chartId: string): ChartConfig {
+export function loadChartConfig(
+  chartId: string,
+  screenDefaults?: Partial<ChartConfig>,
+): ChartConfig {
+  // `screenDefaults` lets a caller suggest sensible first-open values --
+  // e.g. a coverage chart's real target of 3.0 months rather than the
+  // generic DEFAULT_CHART_CONFIG value of 100 -- without ever overriding
+  // something the user has actually customised and saved. Precedence is
+  // shipped defaults, then the screen's suggestion, then the user's save.
   try {
     const raw = localStorage.getItem(STORE_KEY);
     const all = raw ? JSON.parse(raw) : {};
-    return { ...DEFAULT_CHART_CONFIG, ...(all[chartId] ?? {}) };
+    return { ...DEFAULT_CHART_CONFIG, ...screenDefaults, ...(all[chartId] ?? {}) };
   } catch {
-    return DEFAULT_CHART_CONFIG;
+    return { ...DEFAULT_CHART_CONFIG, ...screenDefaults };
   }
 }
 

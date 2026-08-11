@@ -45,15 +45,23 @@ export interface ChartCardProps {
    * result is worse than not offering it.
    */
   fixedAxis?: AxisMode;
+  /**
+   * Suggested first-open values, e.g. a coverage chart's real target of 3.0
+   * months rather than the generic default of 100. Only applies before the
+   * user has customised and saved this specific chart -- it can never
+   * override an existing save.
+   */
+  defaultConfig?: Partial<ChartConfig>;
   className?: string;
 }
 
 export default function ChartCard({
   chartId, title, subtitle, periods, seriesNames, plan, actual,
-  unit = '', precision = 1, seriesLabel = 'Series', fixedAxis, className = '',
+  unit = '', precision = 1, seriesLabel = 'Series', fixedAxis, defaultConfig,
+  className = '',
 }: ChartCardProps) {
   const [config, setConfigState] = useState<ChartConfig>(
-    () => ({ ...loadChartConfig(chartId), ...(fixedAxis ? { axis: fixedAxis } : {}) }));
+    () => ({ ...loadChartConfig(chartId, defaultConfig), ...(fixedAxis ? { axis: fixedAxis } : {}) }));
   const [showPanel, setShowPanel] = useState(false);
 
   const setConfig = useCallback((next: ChartConfig) => {

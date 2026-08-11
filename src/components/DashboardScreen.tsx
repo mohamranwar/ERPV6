@@ -68,14 +68,12 @@ import ErrorState from './ErrorState';
 import { toCartons, formatQtyCompact } from '../utils/uom';
 import { KpiCard, type StatusIntent, Modal } from './ui';
 import {
-  SalesByPcsChart,
-  ProductionByPcsChart,
-  RawMaterialCoverageChart,
   RawMaterialStockChart,
-  FGStockCoverageChart,
   FGStockVsSalesChart,
 } from './ExecutiveCharts';
 import { computeExecutiveChartData, chartCaption } from '../utils/executiveCharts';
+import ChartCard from './charts/ChartCard';
+import { volumePointsToCube, coveragePointsToCube } from './dashboardChartAdapters';
 import DashboardCustomizerModal, {
 
   DEFAULT_WIDGET_CONFIGS,
@@ -396,6 +394,18 @@ export default function DashboardScreen({
     purchaseOrders,
     materials,
   }), [salesPlans, salesActuals, prodPlans, prodActuals, inventorySnapshots, purchaseOrders, materials, refreshKey]);
+
+  // Cubes for the four executive charts that genuinely are a plan-vs-actual
+  // pair -- see dashboardChartAdapters.ts for why the other two (RM stock
+  // flow, FG stock vs sales) are not included here.
+  const salesCube = useMemo(
+    () => volumePointsToCube(executiveChartData.salesByPcs), [executiveChartData.salesByPcs]);
+  const productionCube = useMemo(
+    () => volumePointsToCube(executiveChartData.productionByPcs), [executiveChartData.productionByPcs]);
+  const rmCoverage = useMemo(
+    () => coveragePointsToCube(executiveChartData.rmCoverageMonths), [executiveChartData.rmCoverageMonths]);
+  const fgCoverage = useMemo(
+    () => coveragePointsToCube(executiveChartData.fgStockCoverage), [executiveChartData.fgStockCoverage]);
 
   useAsyncLoad(loadData, [refreshKey]);
 
@@ -923,19 +933,73 @@ export default function DashboardScreen({
         );
 
       case 'sales_by_pcs':
-        return <SalesByPcsChart data={executiveChartData.salesByPcs} height={chartHeight} caption={chartCaption(executiveChartData, 'Sales actuals')} />;
+        return (
+          <ChartCard
+            chartId="dash-sales-by-pcs"
+            title="Sales by PCS"
+            subtitle={`Base Case (BC) vs Forecast (FC) monthly sales volume · ${chartCaption(executiveChartData, 'Sales actuals')}`}
+            periods={salesCube.periods}
+            seriesNames={salesCube.seriesNames}
+            plan={salesCube.plan}
+            actual={salesCube.actual}
+            unit="M pcs"
+            precision={1}
+            fixedAxis="period"
+          />
+        );
 
       case 'production_by_pcs':
-        return <ProductionByPcsChart data={executiveChartData.productionByPcs} height={chartHeight} caption={chartCaption(executiveChartData, 'Production actuals')} />;
+        return (
+          <ChartCard
+            chartId="dash-production-by-pcs"
+            title="Production by PCS"
+            subtitle={`Base Case (BC) vs Forecast (FC) monthly production plan · ${chartCaption(executiveChartData, 'Production actuals')}`}
+            periods={productionCube.periods}
+            seriesNames={productionCube.seriesNames}
+            plan={productionCube.plan}
+            actual={productionCube.actual}
+            unit="M pcs"
+            precision={1}
+            fixedAxis="period"
+          />
+        );
 
       case 'rm_coverage_months':
-        return <RawMaterialCoverageChart data={executiveChartData.rmCoverageMonths} height={chartHeight} caption={chartCaption(executiveChartData, 'RM inventory')} />;
+        return (
+          <ChartCard
+            chartId="dash-rm-coverage"
+            title="Raw material coverage"
+            subtitle={`Months of cover against consumption · ${chartCaption(executiveChartData, 'RM inventory')}`}
+            periods={rmCoverage.cube.periods}
+            seriesNames={rmCoverage.cube.seriesNames}
+            plan={rmCoverage.cube.plan}
+            actual={rmCoverage.cube.actual}
+            unit="mo"
+            precision={2}
+            fixedAxis="period"
+            defaultConfig={rmCoverage.targetDefault}
+          />
+        );
 
       case 'rm_stock_usage_po':
         return <RawMaterialStockChart data={executiveChartData.rmStockUsagePo} height={chartHeight} caption={chartCaption(executiveChartData, 'PO procurement')} />;
 
       case 'fg_stock_coverage':
-        return <FGStockCoverageChart data={executiveChartData.fgStockCoverage} height={chartHeight} caption={chartCaption(executiveChartData, 'FG inventory')} />;
+        return (
+          <ChartCard
+            chartId="dash-fg-coverage"
+            title="Finished goods coverage"
+            subtitle={`Months of cover against sales · ${chartCaption(executiveChartData, 'FG inventory')}`}
+            periods={fgCoverage.cube.periods}
+            seriesNames={fgCoverage.cube.seriesNames}
+            plan={fgCoverage.cube.plan}
+            actual={fgCoverage.cube.actual}
+            unit="mo"
+            precision={2}
+            fixedAxis="period"
+            defaultConfig={fgCoverage.targetDefault}
+          />
+        );
 
       case 'fg_stk_vs_sales':
         return <FGStockVsSalesChart data={executiveChartData.fgStkVsSales} height={chartHeight} caption={chartCaption(executiveChartData, 'FG sales & warehouse')} />;
