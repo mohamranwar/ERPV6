@@ -41,6 +41,7 @@ export default function SalesPlanScreen({
   const [inventorySnapshots, setInventorySnapshots] = useState<InventorySnapshot[]>([]);
   const [productionPlans, setProductionPlans] = useState<ProductionPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Filter conditions
@@ -109,7 +110,7 @@ export default function SalesPlanScreen({
       setError(e instanceof Error ? e.message : String(e));
       showToast("Sales demand tables failed to load: " + e.message, 'error');
     } finally {
-      if (!signal.cancelled) setLoading(false);
+      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
     }
   }
 
@@ -249,6 +250,7 @@ export default function SalesPlanScreen({
       showToast("Save failed: " + err.message, "error");
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   };
 
@@ -402,7 +404,7 @@ export default function SalesPlanScreen({
               onClick={() => setSelectedGrain(grain)}
               className={`px-3 py-1 text-xs font-bold capitalize rounded-md transition-all cursor-pointer ${
                 selectedGrain === grain 
-                  ? 'bg-blue-600 text-white shadow-xs' 
+                  ? 'bg-brand-600 text-white shadow-xs' 
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -441,9 +443,9 @@ export default function SalesPlanScreen({
         </button>
       </div>
 
-      {loading ? (
+      {(loading && !hasLoadedOnce) ? (
         <div className="flex justify-center items-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : (
         <div className="card-elevated overflow-hidden font-sans">
@@ -469,7 +471,7 @@ export default function SalesPlanScreen({
                   <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="font-semibold text-slate-900">{p.name}</div>
-                      <div className="text-[11px] font-mono font-semibold text-indigo-700">{p.sku}</div>
+                      <div className="text-[11px] font-mono font-semibold text-brand-700">{p.sku}</div>
                       {/* Pack configuration in the row itself, so the carton
                           figures beside it can be checked without leaving the
                           screen. Says so plainly when it is missing, since
@@ -512,7 +514,7 @@ export default function SalesPlanScreen({
                               className={`w-full text-right p-1.5 border border-transparent rounded-lg focus:outline-hidden font-bold font-mono text-xs ${
                                 !selectedChannelId 
                                   ? 'bg-slate-100 text-slate-500 cursor-not-allowed' 
-                                  : 'bg-slate-50/30 text-slate-800 hover:border-slate-200 focus:border-blue-500 focus:bg-white'
+                                  : 'bg-slate-50/30 text-slate-800 hover:border-slate-200 focus:border-brand-500 focus:bg-white'
                               }`}
                             />
                             {/* The other reading, always visible: the figure
@@ -533,10 +535,10 @@ export default function SalesPlanScreen({
                             {selectedChannelId && isBlank && suggestion > 0 && (
                               <button
                                 onClick={() => applySuggestion(p.id, col)}
-                                className="text-[9px] text-blue-600 hover:text-blue-800 font-bold flex items-center gap-0.5 cursor-pointer"
+                                className="text-[9px] text-brand-600 hover:text-brand-800 font-bold flex items-center gap-0.5 cursor-pointer"
                                 title="Click to apply stock flat-line suggested demand value"
                               >
-                                <Sparkles className="w-2.5 h-2.5 text-blue-500" />
+                                <Sparkles className="w-2.5 h-2.5 text-brand-500" />
                                 {formatQty(suggestion, p, entryUnit)} {unitLabel(entryUnit)}
                               </button>
                             )}

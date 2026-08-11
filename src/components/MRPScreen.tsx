@@ -29,10 +29,10 @@ import {
  * that band is the window where a planner can still act before it bites.
  */
 function stockCellClass(projected: number, safetyStock: number): string {
-  if (safetyStock <= 0) return 'text-blue-700';
+  if (safetyStock <= 0) return 'text-brand-700';
   if (projected < safetyStock) return 'text-red-600 bg-red-50/60';
   if (projected < safetyStock * 1.15) return 'text-amber-700 bg-amber-50/50';
-  return 'text-blue-700';
+  return 'text-brand-700';
 }
 import { useToast } from '../context/ToastConfirmContext';
 import { useAuth } from '../context/AuthContext';
@@ -68,6 +68,7 @@ export default function MRPScreen({
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [mrpResults, setMrpResults] = useState<MRPResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showWhatIf, setShowWhatIf] = useState(false);
 
@@ -150,6 +151,7 @@ export default function MRPScreen({
       showToast('Failed to load MRP data: ' + e.message, 'error');
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   }
 
@@ -523,12 +525,12 @@ export default function MRPScreen({
       <div className="bg-white border border-slate-200 p-3 rounded-2xl flex items-center flex-wrap justify-between gap-3 shadow-xs text-xs font-sans">
         <div className="flex items-center flex-wrap gap-3">
           <div className="flex items-center gap-1.5 font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl">
-            <Calendar className="w-3.5 h-3.5 text-blue-600" /> Start Date:
+            <Calendar className="w-3.5 h-3.5 text-brand-600" /> Start Date:
             <input aria-label="Start date" 
               type="date" 
               value={startDate} 
               onChange={e => setStartDate(e.target.value)} 
-              className="px-1.5 py-0.5 border border-slate-300 rounded-lg bg-white text-xs font-mono text-slate-800 focus:outline-hidden focus:border-blue-500" 
+              className="px-1.5 py-0.5 border border-slate-300 rounded-lg bg-white text-xs font-mono text-slate-800 focus:outline-hidden focus:border-brand-500" 
             />
           </div>
 
@@ -543,7 +545,7 @@ export default function MRPScreen({
                 }}
                 className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
                   grain === 'day' 
-                    ? 'bg-white text-blue-600 shadow-2xs' 
+                    ? 'bg-white text-brand-600 shadow-2xs' 
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -557,7 +559,7 @@ export default function MRPScreen({
                 }}
                 className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
                   grain === 'week' 
-                    ? 'bg-white text-blue-600 shadow-2xs' 
+                    ? 'bg-white text-brand-600 shadow-2xs' 
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -571,7 +573,7 @@ export default function MRPScreen({
                 }}
                 className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
                   grain === 'month' 
-                    ? 'bg-white text-blue-600 shadow-2xs' 
+                    ? 'bg-white text-brand-600 shadow-2xs' 
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -654,7 +656,7 @@ export default function MRPScreen({
       <ErrorState error={error} onRetry={loadData} />
 
       {showWhatIf && (
-        <div className="bg-white border border-indigo-200 rounded-2xl p-4 shadow-sm space-y-4">
+        <div className="bg-white border border-brand-200 rounded-2xl p-4 shadow-sm space-y-4">
           <WhatIfSimulator searchQuery={searchQuery} setSearchQuery={setSearchQuery} onNavigate={onNavigate} refreshKey={refreshKey} />
         </div>
       )}
@@ -667,7 +669,7 @@ export default function MRPScreen({
             onClick={() => setActiveTab('grid')}
             className={`px-3.5 py-1.5 text-xs font-bold rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
               activeTab === 'grid' 
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xs font-extrabold' 
+                ? 'bg-brand-600 border-brand-600 text-white shadow-xs font-extrabold' 
                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -679,7 +681,7 @@ export default function MRPScreen({
             onClick={() => setActiveTab('orders')}
             className={`px-3.5 py-1.5 text-xs font-bold rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
               activeTab === 'orders' 
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xs font-extrabold' 
+                ? 'bg-brand-600 border-brand-600 text-white shadow-xs font-extrabold' 
                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -691,7 +693,7 @@ export default function MRPScreen({
             onClick={() => setActiveTab('po_board')}
             className={`px-3.5 py-1.5 text-xs font-bold rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
               activeTab === 'po_board' 
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xs font-extrabold' 
+                ? 'bg-brand-600 border-brand-600 text-white shadow-xs font-extrabold' 
                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -703,7 +705,7 @@ export default function MRPScreen({
             onClick={() => setActiveTab('subs')}
             className={`px-3.5 py-1.5 text-xs font-bold rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
               activeTab === 'subs'
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xs font-extrabold'
+                ? 'bg-brand-600 border-brand-600 text-white shadow-xs font-extrabold'
                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -766,7 +768,7 @@ export default function MRPScreen({
       {/* Show active run timestamp */}
       {selectedRunTimestamp() && (
         <div className="flex items-center justify-between text-xs text-slate-400 font-mono px-1">
-          <span>Active Run ID: <strong className="text-blue-600">{mrpRunId}</strong></span>
+          <span>Active Run ID: <strong className="text-brand-600">{mrpRunId}</strong></span>
           <span>Calculated on: {selectedRunTimestamp()}</span>
         </div>
       )}
@@ -801,9 +803,9 @@ export default function MRPScreen({
         </div>
       )}
 
-      {loading ? (
+      {(loading && !hasLoadedOnce) ? (
         <div className="flex justify-center items-center h-48 bg-white border border-slate-100 rounded-xl">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : (
         <div id="mrp_tab_content_wrapper" className="font-sans">
@@ -814,7 +816,7 @@ export default function MRPScreen({
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                    <Layers className="w-4 h-4 text-blue-600" /> Views:
+                    <Layers className="w-4 h-4 text-brand-600" /> Views:
                   </span>
                   <button
                     onClick={handleExpandAll}
@@ -836,7 +838,7 @@ export default function MRPScreen({
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-400"></span> Gross Req</span>
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Inbound POs</span>
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span> Safety Target</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> Projected Stock</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-brand-500"></span> Projected Stock</span>
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> Net Deficit</span>
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-600"></span> Order Release</span>
                 </div>
@@ -856,7 +858,7 @@ export default function MRPScreen({
                           <th className="px-4 py-3 sticky left-0 bg-slate-50 z-10 min-w-[280px] border-r border-slate-100">Material Component / Code</th>
                           <th className="px-4 py-3 min-w-[180px] border-r border-slate-100">
                             Metric
-                            <span className="block text-[9px] text-blue-600 font-normal normal-case">(Summary = Projected Stock)</span>
+                            <span className="block text-[9px] text-brand-600 font-normal normal-case">(Summary = Projected Stock)</span>
                           </th>
                           {bucketRanges.map(b => (
                             <th key={b.start} className="px-4 py-3 text-right min-w-[150px]">
@@ -1010,9 +1012,9 @@ export default function MRPScreen({
                                 {/* 4. Projected Available Stock */}
                                 <tr className="hover:bg-slate-50/30 transition-colors">
                                   <td className="px-4 py-1.5 sticky left-0 bg-white z-10 border-r border-slate-100"></td>
-                                  <td className="px-4 py-1.5 text-blue-800 font-semibold border-r border-slate-100">
+                                  <td className="px-4 py-1.5 text-brand-800 font-semibold border-r border-slate-100">
                                     <span className="flex items-center gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
                                       Projected Stock
                                     </span>
                                   </td>
@@ -1056,16 +1058,16 @@ export default function MRPScreen({
                                 {/* 6. Planned Receipts - when stock has to land */}
                                 <tr className="hover:bg-slate-50/30 transition-colors">
                                   <td className="px-4 py-1.5 sticky left-0 bg-white z-10 border-r border-slate-100"></td>
-                                  <td className="px-4 py-1.5 text-indigo-800 font-medium border-r border-slate-100">
+                                  <td className="px-4 py-1.5 text-brand-800 font-medium border-r border-slate-100">
                                     <span className="flex items-center gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
                                       Planned Receipts
                                     </span>
                                   </td>
                                   {buckets.map(wk => {
                                     const rec = rowFor(wk)?.planned_order_receipts || 0;
                                     return (
-                                      <td key={wk} className="px-4 py-1.5 text-right font-mono text-indigo-700">
+                                      <td key={wk} className="px-4 py-1.5 text-right font-mono text-brand-700">
                                         {rec > 0 ? rec.toLocaleString() : '-'}
                                       </td>
                                     );
@@ -1114,7 +1116,7 @@ export default function MRPScreen({
                                               <span className="text-amber-700 font-bold">+{release.toLocaleString()}</span>
                                               <button
                                                 onClick={() => openCreatePoDialog(m.id, release, wk)}
-                                                className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[9px] font-bold flex items-center gap-0.5 shadow-sm transition-all cursor-pointer"
+                                                className="px-2 py-0.5 bg-brand-600 hover:bg-brand-700 text-white rounded text-[9px] font-bold flex items-center gap-0.5 shadow-sm transition-all cursor-pointer"
                                               >
                                                 <Plus className="w-2.5 h-2.5" />
                                                 Create PO
@@ -1158,7 +1160,7 @@ export default function MRPScreen({
                   <tbody className="divide-y divide-slate-200 text-slate-900">
                     {plannedOrdersList.map(order => (
                       <tr key={order.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 font-semibold text-blue-600 font-mono">{order.release_date}</td>
+                        <td className="px-4 py-3 font-semibold text-brand-600 font-mono">{order.release_date}</td>
                         <td className="px-4 py-3">
                           <p className="font-semibold">{order.material_name}</p>
                           <p className="text-[10px] text-slate-400 font-mono">{order.sku}</p>
@@ -1170,7 +1172,7 @@ export default function MRPScreen({
                         <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => openCreatePoDialog(order.material_id, order.quantity, order.required_date)}
-                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold shadow-xs transition-all cursor-pointer"
+                            className="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-md text-xs font-bold shadow-xs transition-all cursor-pointer"
                           >
                             Create PO
                           </button>
@@ -1321,7 +1323,7 @@ export default function MRPScreen({
                       </div>
                       <button
                         onClick={() => openCreatePoDialog(order.material_id, order.quantity, order.required_date)}
-                        className="w-full mt-1.5 py-1 text-[10px] bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded border border-blue-200 transition-all cursor-pointer"
+                        className="w-full mt-1.5 py-1 text-[10px] bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold rounded border border-brand-200 transition-all cursor-pointer"
                       >
                         Create Purchase Order
                       </button>
@@ -1373,10 +1375,10 @@ export default function MRPScreen({
               {/* Column 3: In Transit */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 flex flex-col h-[65vh]">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1">
+                  <h4 className="text-xs font-bold text-brand-700 uppercase tracking-wider flex items-center gap-1">
                     <Truck className="w-3.5 h-3.5" /> In Transit
                   </h4>
-                  <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-bold rounded-full">
+                  <span className="px-1.5 py-0.5 bg-brand-100 text-brand-800 text-[10px] font-bold rounded-full">
                     {purchaseOrders.filter(p => p.status === 'in_transit').length}
                   </span>
                 </div>
@@ -1390,7 +1392,7 @@ export default function MRPScreen({
                         <p className="text-[9px] text-slate-400 font-mono">{po.order_no}</p>
                         <div className="flex justify-between items-baseline text-xs">
                           <span className="text-[10px] text-slate-400 font-sans">Ship Qty:</span>
-                          <span className="font-bold font-mono text-indigo-600">{po.qty.toLocaleString()}</span>
+                          <span className="font-bold font-mono text-brand-600">{po.qty.toLocaleString()}</span>
                         </div>
                         <div className="text-[9px] text-slate-500 flex justify-between border-t border-slate-100 pt-1.5">
                           <span>Required: {po.required_date}</span>
@@ -1447,7 +1449,7 @@ export default function MRPScreen({
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col border border-slate-100 font-sans">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-blue-600" /> Confirm Purchase Order
+                <ShoppingBag className="w-4 h-4 text-brand-600" /> Confirm Purchase Order
               </h3>
               <button 
                 onClick={() => setPoModalData(null)} 
@@ -1458,7 +1460,7 @@ export default function MRPScreen({
             </div>
 
             <div className="p-5 space-y-4 text-xs leading-relaxed">
-              <div className="p-3 bg-blue-50 border border-blue-100 text-blue-800 rounded-lg">
+              <div className="p-3 bg-brand-50 border border-brand-100 text-brand-800 rounded-lg">
                 Confirming this action will generate a pending Purchase Order and register a corresponding Scheduled Receipt in future MRP runs.
               </div>
 
@@ -1485,7 +1487,7 @@ export default function MRPScreen({
                 </div>
                 <div className="flex justify-between border-b border-slate-100 pb-1.5">
                   <span className="text-slate-400">Required Date</span>
-                  <span className="font-semibold text-blue-600 font-mono">{poModalData.requiredDate}</span>
+                  <span className="font-semibold text-brand-600 font-mono">{poModalData.requiredDate}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-100 pb-1.5">
                   <span className="text-slate-400">Suggested Release Date</span>
@@ -1511,7 +1513,7 @@ export default function MRPScreen({
               </button>
               <button 
                 onClick={handleConfirmCreatePO}
-                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-xs shadow-xs cursor-pointer"
+                className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg text-xs shadow-xs cursor-pointer"
               >
                 Confirm & Create PO
               </button>
@@ -1547,7 +1549,7 @@ export default function MRPScreen({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Active Run ID:</span>
-                  <span className="font-bold text-blue-600">{mrpRunId}</span>
+                  <span className="font-bold text-brand-600">{mrpRunId}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Time Grain / Horizon:</span>

@@ -92,22 +92,22 @@ export default function SKUSearchPicker({
       <button
         type="button"
         onClick={() => setIsOpen(prev => !prev)}
-        className="w-full flex items-center justify-between gap-2 px-3.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg font-semibold text-slate-800 shadow-xs hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer min-w-[240px]"
+        className="w-full flex items-center justify-between gap-2 px-3.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg font-semibold text-slate-800 shadow-xs hover:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all cursor-pointer min-w-[240px]"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
         <div className="flex items-center gap-2 min-w-0 truncate">
-          <Box className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <Box className="w-3.5 h-3.5 text-brand-600 shrink-0" />
           {selectedProduct ? (
             <span className="truncate">
-              <span className="font-mono font-bold text-blue-700 me-1.5">{selectedProduct.sku}</span>
+              <span className="font-mono font-bold text-brand-700 me-1.5">{selectedProduct.sku}</span>
               <span className="text-slate-700 font-medium">{selectedProduct.name}</span>
             </span>
           ) : (
             <span className="text-slate-400">Select Product / SKU...</span>
           )}
         </div>
-        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180 text-brand-600' : ''}`} />
       </button>
 
       {/* Dropdown Popover */}
@@ -156,12 +156,12 @@ export default function SKUSearchPicker({
                     type="button"
                     onClick={() => handleSelect(product.id)}
                     className={`w-full text-start px-3 py-2 text-xs rounded-lg flex items-center justify-between gap-2 transition-colors cursor-pointer ${
-                      isSelected ? 'bg-blue-50/80 text-blue-900 font-bold' : 'hover:bg-slate-50 text-slate-700'
+                      isSelected ? 'bg-brand-50/80 text-brand-900 font-bold' : 'hover:bg-slate-50 text-slate-700'
                     }`}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-blue-600 text-[11px] shrink-0">{product.sku}</span>
+                        <span className="font-mono font-bold text-brand-600 text-[11px] shrink-0">{product.sku}</span>
                         {product.product_line && (
                           <span className="text-[9px] font-mono px-1 py-0.2 bg-slate-100 text-slate-600 rounded border border-slate-200">
                             {product.product_line}
@@ -173,7 +173,7 @@ export default function SKUSearchPicker({
                       </div>
                     </div>
                     {isSelected && (
-                      <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 ms-1" />
+                      <Check className="w-3.5 h-3.5 text-brand-600 shrink-0 ms-1" />
                     )}
                   </button>
                 );

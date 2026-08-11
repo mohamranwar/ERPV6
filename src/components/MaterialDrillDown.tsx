@@ -647,11 +647,11 @@ export default function MaterialDrillDown({
 
             <div className="card-elevated p-3.5 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Primary Suppliers</span>
-                <span className="text-xl font-bold font-mono text-indigo-700">{suppliers.length}</span>
+                <span className="text-[10px] font-bold text-brand-600 uppercase tracking-wider block">Primary Suppliers</span>
+                <span className="text-xl font-bold font-mono text-brand-700">{suppliers.length}</span>
                 <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">Active Vendors</span>
               </div>
-              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-2.5 bg-brand-50 text-brand-600 rounded-lg">
                 <Truck className="w-5 h-5" />
               </div>
             </div>
@@ -734,7 +734,7 @@ export default function MaterialDrillDown({
                   }}
                   className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
                     inspectionGrain === 'day' 
-                      ? 'bg-white text-blue-600 shadow-2xs' 
+                      ? 'bg-white text-brand-600 shadow-2xs' 
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -748,7 +748,7 @@ export default function MaterialDrillDown({
                   }}
                   className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
                     inspectionGrain === 'week' 
-                      ? 'bg-white text-blue-600 shadow-2xs' 
+                      ? 'bg-white text-brand-600 shadow-2xs' 
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -762,7 +762,7 @@ export default function MaterialDrillDown({
                   }}
                   className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
                     inspectionGrain === 'month' 
-                      ? 'bg-white text-blue-600 shadow-2xs' 
+                      ? 'bg-white text-brand-600 shadow-2xs' 
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -780,7 +780,7 @@ export default function MaterialDrillDown({
           <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm">
             <div className="px-6 py-4 bg-slate-900 text-white flex flex-wrap justify-between items-center gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg border border-blue-500/30">
+                <div className="p-1.5 bg-brand-500/20 text-brand-400 rounded-lg border border-brand-500/30">
                   <Layers className="w-4 h-4" />
                 </div>
                 <div>
@@ -792,7 +792,7 @@ export default function MaterialDrillDown({
                   </p>
                 </div>
               </div>
-              <span className="text-xs text-blue-300 bg-blue-900/50 border border-blue-700/50 px-3 py-1 rounded-full font-medium">
+              <span className="text-xs text-brand-300 bg-brand-900/50 border border-brand-700/50 px-3 py-1 rounded-full font-medium">
                 Click any component row to view detailed coverage analysis 🔍
               </span>
             </div>
@@ -805,7 +805,7 @@ export default function MaterialDrillDown({
                     <th className="px-4 py-3.5 hidden md:table-cell">Category & Vendor</th>
                     <th className="px-3 py-3.5 hidden lg:table-cell">Controller</th>
                     <th className="px-3 sm:px-4 py-3.5 text-right bg-emerald-50/60 text-emerald-950 font-bold">On-Hand Stock 📦</th>
-                    <th className="px-4 py-3.5 text-right bg-indigo-50/60 text-indigo-950 font-bold hidden sm:table-cell">Open POs & Transit 🚢</th>
+                    <th className="px-4 py-3.5 text-right bg-brand-50/60 text-brand-950 font-bold hidden sm:table-cell">Open POs & Transit 🚢</th>
                     <th className="px-4 py-3.5 text-right hidden md:table-cell">Gross Demand ⚙️</th>
                     <th className="px-4 py-3.5 text-right hidden lg:table-cell">Safety Target 🛡️</th>
                     <th className="px-3 sm:px-4 py-3.5 text-center">Stock Coverage Status</th>
@@ -827,17 +827,17 @@ export default function MaterialDrillDown({
                             isDeficit ? 'bg-red-50/30 hover:bg-red-50/60' : ''
                           } ${
                             expandedMaterialIds[m.id]
-                              ? 'bg-blue-50/70 font-medium border-l-4 border-l-blue-600'
+                              ? 'bg-brand-50/70 font-medium border-l-4 border-l-blue-600'
                               : 'hover:border-l-4 hover:border-l-blue-400'
                           }`}
                         >
                         {/* Component Name & SKU */}
                         <td className="px-3 sm:px-5 py-3.5">
-                          <div className="font-bold text-slate-900 text-sm group-hover:text-blue-700 transition-colors break-words">
+                          <div className="font-bold text-slate-900 text-sm group-hover:text-brand-700 transition-colors break-words">
                             {m.name}
                           </div>
                           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
-                            <span className="font-mono text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
+                            <span className="font-mono text-[11px] font-bold text-brand-700 bg-brand-50 border border-brand-100 px-1.5 py-0.5 rounded">
                               {m.sku}
                             </span>
                             <span className="text-[10px] text-slate-400 font-mono">
@@ -874,12 +874,12 @@ export default function MaterialDrillDown({
                         </td>
 
                         {/* Open Orders & Freight */}
-                        <td className="px-4 py-3.5 text-right bg-indigo-50/20 group-hover:bg-indigo-50/40 transition-colors hidden sm:table-cell">
-                          <div className="font-mono font-bold text-sm text-indigo-900">
+                        <td className="px-4 py-3.5 text-right bg-brand-50/20 group-hover:bg-brand-50/40 transition-colors hidden sm:table-cell">
+                          <div className="font-mono font-bold text-sm text-brand-900">
                             +{summary ? summary.openSupply.toLocaleString() : '—'}
                           </div>
                           {summary && summary.openSupply > 0 ? (
-                            <div className="text-[10px] font-mono text-indigo-600 font-semibold">
+                            <div className="text-[10px] font-mono text-brand-600 font-semibold">
                               PO: +{summary.openPOs.toLocaleString()} | Transit: +{summary.inTransit.toLocaleString()}
                             </div>
                           ) : (
@@ -939,12 +939,12 @@ export default function MaterialDrillDown({
                               onClick={(e) => toggleExpandRow(m.id, e)}
                               className={`p-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                                 expandedMaterialIds[m.id]
-                                  ? 'bg-blue-100 text-blue-800 border-blue-300 shadow-2xs'
+                                  ? 'bg-brand-100 text-brand-800 border-brand-300 shadow-2xs'
                                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                               }`}
                               title="Toggle 3-Month Trend Sparkline"
                             >
-                              <LineChart className="w-3.5 h-3.5 text-blue-600" />
+                              <LineChart className="w-3.5 h-3.5 text-brand-600" />
                               {expandedMaterialIds[m.id] ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                             </button>
 
@@ -953,7 +953,7 @@ export default function MaterialDrillDown({
                                 e.stopPropagation();
                                 handleSelectMaterial(m.id);
                               }}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-95"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-95"
                             >
                               <span>Inspect Status</span>
                               <ChevronRight className="w-3.5 h-3.5" />
@@ -967,7 +967,7 @@ export default function MaterialDrillDown({
                             <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-wrap lg:flex-nowrap items-center justify-between gap-6">
                               <div className="space-y-1.5 max-w-sm">
                                 <div className="flex items-center gap-2">
-                                  <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg">
+                                  <div className="p-1.5 bg-brand-100 text-brand-700 rounded-lg">
                                     <LineChart className="w-4 h-4" />
                                   </div>
                                   <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">3-Month Inventory Projection Trend</span>
@@ -1023,7 +1023,7 @@ export default function MaterialDrillDown({
                                     e.stopPropagation();
                                     handleSelectMaterial(m.id);
                                   }}
-                                  className="px-4 py-2 bg-slate-900 hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                                  className="px-4 py-2 bg-slate-900 hover:bg-brand-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                                 >
                                   <span>Full Material Inspection</span>
                                   <ChevronRight className="w-4 h-4" />
@@ -1079,7 +1079,7 @@ export default function MaterialDrillDown({
                   onClick={() => setInspectionGrain('day')}
                   className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                     inspectionGrain === 'day' 
-                      ? 'bg-blue-600 text-white shadow-xs' 
+                      ? 'bg-brand-600 text-white shadow-xs' 
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
                 >
@@ -1090,7 +1090,7 @@ export default function MaterialDrillDown({
                   onClick={() => setInspectionGrain('week')}
                   className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                     inspectionGrain === 'week' 
-                      ? 'bg-blue-600 text-white shadow-xs' 
+                      ? 'bg-brand-600 text-white shadow-xs' 
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
                 >
@@ -1101,7 +1101,7 @@ export default function MaterialDrillDown({
                   onClick={() => setInspectionGrain('month')}
                   className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                     inspectionGrain === 'month' 
-                      ? 'bg-blue-600 text-white shadow-xs' 
+                      ? 'bg-brand-600 text-white shadow-xs' 
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
                 >
@@ -1116,7 +1116,7 @@ export default function MaterialDrillDown({
                   placeholder="Filter materials by SKU or Name..."
                   value={inspectionSearchQuery}
                   onChange={e => setInspectionSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white w-48 sm:w-64"
+                  className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-brand-500 focus:bg-white w-48 sm:w-64"
                 />
               </div>
 
@@ -1159,10 +1159,10 @@ export default function MaterialDrillDown({
                 <div className="bg-slate-900 text-white p-5 rounded-xl flex flex-wrap items-center justify-between gap-4 shadow-md">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 bg-blue-600 text-white font-mono text-[10px] font-bold rounded uppercase tracking-wider">
+                      <span className="px-2.5 py-0.5 bg-brand-600 text-white font-mono text-[10px] font-bold rounded uppercase tracking-wider">
                         {activeCat?.name || 'Raw Material'}
                       </span>
-                      <span className="text-xs font-mono text-blue-300 font-bold">{activeMaterial.sku}</span>
+                      <span className="text-xs font-mono text-brand-300 font-bold">{activeMaterial.sku}</span>
                     </div>
                     <h2 className="text-xl font-black tracking-tight text-white">{activeMaterial.name}</h2>
                     <p className="text-xs text-slate-300 font-sans">
@@ -1182,12 +1182,12 @@ export default function MaterialDrillDown({
                   </div>
 
                   <div className="card-elevated p-4 space-y-1">
-                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Open POs & Freight</span>
-                    <h3 className="text-2xl font-black font-mono text-indigo-700">
+                    <span className="text-[10px] font-bold text-brand-600 uppercase tracking-wider block">Open POs & Freight</span>
+                    <h3 className="text-2xl font-black font-mono text-brand-700">
                       +{summaryMetrics.totalSupply.toLocaleString()} <span className="text-xs font-normal text-slate-500">{activeMaterial.uom || 'units'}</span>
                     </h3>
                     <p className="text-[10px] text-slate-500 font-medium">
-                      In-Transit: <b className="text-emerald-600">+{summaryMetrics.inTransit.toLocaleString()}</b> | Open POs: <b className="text-indigo-600">+{summaryMetrics.openPOs.toLocaleString()}</b>
+                      In-Transit: <b className="text-emerald-600">+{summaryMetrics.inTransit.toLocaleString()}</b> | Open POs: <b className="text-brand-600">+{summaryMetrics.openPOs.toLocaleString()}</b>
                     </p>
                   </div>
 
@@ -1202,8 +1202,8 @@ export default function MaterialDrillDown({
                   </div>
 
                   <div className="card-elevated p-4 space-y-1">
-                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Lead Time & Coverage</span>
-                    <h3 className="text-2xl font-black font-mono text-blue-700">
+                    <span className="text-[10px] font-bold text-brand-600 uppercase tracking-wider block">Lead Time & Coverage</span>
+                    <h3 className="text-2xl font-black font-mono text-brand-700">
                       {activeMaterial.total_lead_time_days} <span className="text-xs font-normal text-slate-500">days lead</span>
                     </h3>
                     <p className="text-[10px] text-slate-500 font-medium">
@@ -1237,7 +1237,7 @@ export default function MaterialDrillDown({
                           type="button"
                           onClick={() => setInspectionGrain('day')}
                           className={`px-2.5 py-0.5 text-[11px] font-bold rounded transition-all cursor-pointer ${
-                            inspectionGrain === 'day' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                            inspectionGrain === 'day' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
                           }`}
                         >
                           Daily
@@ -1246,7 +1246,7 @@ export default function MaterialDrillDown({
                           type="button"
                           onClick={() => setInspectionGrain('week')}
                           className={`px-2.5 py-0.5 text-[11px] font-bold rounded transition-all cursor-pointer ${
-                            inspectionGrain === 'week' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                            inspectionGrain === 'week' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
                           }`}
                         >
                           Weekly
@@ -1255,7 +1255,7 @@ export default function MaterialDrillDown({
                           type="button"
                           onClick={() => setInspectionGrain('month')}
                           className={`px-2.5 py-0.5 text-[11px] font-bold rounded transition-all cursor-pointer ${
-                            inspectionGrain === 'month' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                            inspectionGrain === 'month' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
                           }`}
                         >
                           Monthly
@@ -1296,7 +1296,7 @@ export default function MaterialDrillDown({
                               <td className="px-5 py-3.5 text-right font-mono text-emerald-600 font-semibold">
                                 {inTransit > 0 ? `+${inTransit.toLocaleString()}` : '0'}
                               </td>
-                              <td className="px-5 py-3.5 text-right font-mono text-indigo-600 font-semibold">
+                              <td className="px-5 py-3.5 text-right font-mono text-brand-600 font-semibold">
                                 {pendingPO > 0 ? `+${pendingPO.toLocaleString()}` : '0'}
                               </td>
                               <td className="px-5 py-3.5 text-right font-mono text-amber-700 font-bold bg-amber-50/20">
@@ -1334,7 +1334,7 @@ export default function MaterialDrillDown({
                 <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-wrap lg:flex-nowrap items-center justify-between gap-6">
                   <div className="space-y-1.5 max-w-sm">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg">
+                      <div className="p-1.5 bg-brand-100 text-brand-700 rounded-lg">
                         <LineChart className="w-4 h-4" />
                       </div>
                       <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">3-Month Inventory Projection Sparkline</h3>
@@ -1380,7 +1380,7 @@ export default function MaterialDrillDown({
                   {/* Receipts Timeline */}
                   <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
                     <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-1.5">
-                      <Calendar className="w-4 h-4 text-blue-600" /> Procurement & Shipment Inbound Timeline
+                      <Calendar className="w-4 h-4 text-brand-600" /> Procurement & Shipment Inbound Timeline
                     </h3>
 
                     {timelineEvents.length === 0 ? (
@@ -1392,14 +1392,14 @@ export default function MaterialDrillDown({
                           return (
                             <div key={evt.id} className="relative">
                               <div className={`absolute -left-[22.5px] top-1.5 w-3 h-3 rounded-full border-2 border-white ${
-                                isPO ? 'bg-indigo-600 shadow-xs' : 'bg-emerald-500 shadow-xs'
+                                isPO ? 'bg-brand-600 shadow-xs' : 'bg-emerald-500 shadow-xs'
                               }`} />
                               <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-0.5">
                                   <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2">
                                     {isPO ? 'Planned Procurement Release' : 'In-Transit Freight Shipment'}
                                     <span className={`text-[9px] font-mono px-1 py-0.5 rounded ${
-                                      isPO ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                      isPO ? 'bg-brand-50 text-brand-700 border border-brand-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                                     }`}>
                                       Ref: {evt.reference}
                                     </span>
@@ -1439,7 +1439,7 @@ export default function MaterialDrillDown({
                                 </div>
                               </div>
                               <div className="text-right font-mono">
-                                <span className="text-xs font-bold text-indigo-700 block">{item.qtyPerUnit} {activeMaterial.uom || 'qty'}/unit</span>
+                                <span className="text-xs font-bold text-brand-700 block">{item.qtyPerUnit} {activeMaterial.uom || 'qty'}/unit</span>
                                 <span className="text-[9px] text-slate-400 block">Scrap: {item.scrapPercent}%</span>
                               </div>
                             </div>
@@ -1451,7 +1451,7 @@ export default function MaterialDrillDown({
                     {/* Alternatives Section */}
                     <div className="space-y-3 pt-3 border-t border-slate-100">
                       <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-indigo-600" /> Approved Alternative Materials
+                        <Sparkles className="w-4 h-4 text-brand-600" /> Approved Alternative Materials
                       </h3>
 
                       {activeAlts.length === 0 ? (

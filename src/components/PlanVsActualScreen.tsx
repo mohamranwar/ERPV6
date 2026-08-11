@@ -43,6 +43,7 @@ export default function PlanVsActualScreen({
   const [productionCompare, setProductionCompare] = useState<VPlanVsActual[]>([]);
   const [exportCompare, setExportCompare] = useState<VPlanVsActual[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Machine metrics
@@ -194,7 +195,7 @@ export default function PlanVsActualScreen({
       setError(e instanceof Error ? e.message : String(e));
       console.error("Failed to load plan vs actual comparison datasets", e);
     } finally {
-      if (!signal.cancelled) setLoading(false);
+      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
     }
   }
 
@@ -207,25 +208,30 @@ export default function PlanVsActualScreen({
   }, [activeTab, salesCompare, productionCompare, exportCompare]);
 
   /**
-   * Chart cube for the plan-vs-actual chart.
+   * Chart cube.
    *
-   * Top 12 items by planned volume rather than every row: a bar chart over 96
-   * SKUs is unreadable at any size, and the long tail is exactly what the
-   * table below is for. Charting the biggest planned volumes keeps the chart
-   * answering the question a planner actually opens it with -- where did the
-   * volume go.
+   * This screen reports a SINGLE period, so the categories are items, not
+   * months. An earlier version passed the SKUs in as `periods` and a lone
+   * "Plan vs actual" string as the series, which made the row/column swap
+   * collapse all twelve bars into one meaningless total -- and labelled the
+   * item axis "Months". Items are now the series, so the swap is coherent and
+   * the axis control is hidden rather than offering a transpose that cannot
+   * mean anything with one period.
+   *
+   * Top 12 by planned volume: a bar chart over 96 SKUs is unreadable at any
+   * size, and the long tail is exactly what the table below is for.
    */
   const chartCube = useMemo(() => {
     const top = [...activeDataset]
       .sort((a, b) => b.plan_qty - a.plan_qty)
       .slice(0, 12);
     return {
-      periods: top.map(d => d.sku || d.item_name),
-      seriesNames: ['Plan vs actual'],
-      plan: [top.map(d => d.plan_qty)],
-      actual: [top.map(d => d.actual_qty)],
+      periods: [formatPlanningPeriod(period)],
+      seriesNames: top.map(d => d.sku || d.item_name),
+      plan: top.map(d => [d.plan_qty]),
+      actual: top.map(d => [d.actual_qty]),
     };
-  }, [activeDataset]);
+  }, [activeDataset, period]);
 
   const getAchievementColor = (pct: number | null) => {
     if (pct === null) return 'text-slate-500 bg-slate-100 border-slate-200';
@@ -326,7 +332,7 @@ export default function PlanVsActualScreen({
           hasActiveSearch={hasActiveSearch}
         />
 
-        <div className="flex items-center gap-1.5 text-xs text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 ml-auto">
+        <div className="flex items-center gap-1.5 text-xs text-brand-800 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-100 ml-auto">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span><b>Target Period:</b> {formatPlanningPeriod(period)}</span>
         </div>
@@ -348,20 +354,21 @@ export default function PlanVsActualScreen({
           unit="units"
           precision={0}
           seriesLabel="Items"
+          fixedAxis="series"
           className="mb-4"
         />
       )}
 
-      {loading ? (
+      {(loading && !hasLoadedOnce) ? (
         <div className="flex justify-center items-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : (
         <div className="space-y-6">
           {activeTab === 'production' && (
             <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4 font-sans">
               <div className="flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-blue-600 shrink-0" />
+                <Cpu className="w-5 h-5 text-brand-600 shrink-0" />
                 <div>
                   <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Machine Capacity & Hours Utilization Control Tower</h3>
                   <p className="text-[10px] text-slate-500">Maps production volumes to actual machine hours based on standard line speeds compared to available capacity limits.</p>
@@ -390,7 +397,7 @@ export default function PlanVsActualScreen({
                         </div>
                         <div className="flex justify-between text-[9px] text-slate-500 font-mono">
                           <span>Planned:</span>
-                          <span className="font-bold text-blue-600">{mac.planned_hours} hrs ({mac.planned_util}%)</span>
+                          <span className="font-bold text-brand-600">{mac.planned_hours} hrs ({mac.planned_util}%)</span>
                         </div>
                         <div className="flex justify-between text-[9px] text-slate-500 font-mono">
                           <span>Actual:</span>

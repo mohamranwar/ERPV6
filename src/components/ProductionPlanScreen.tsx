@@ -41,6 +41,7 @@ export default function ProductionPlanScreen({
   const [machines, setMachines] = useState<Machine[]>([]);
   const [productionPlans, setProductionPlans] = useState<ProductionPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Screen Tabs
@@ -102,7 +103,7 @@ export default function ProductionPlanScreen({
       setError(e instanceof Error ? e.message : String(e));
       showToast("Failed to load production plan dependencies: " + e.message, 'error');
     } finally {
-      if (!signal.cancelled) setLoading(false);
+      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
     }
   }
 
@@ -197,6 +198,7 @@ export default function ProductionPlanScreen({
       showToast("Save failed: " + err.message, "error");
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   };
 
@@ -495,14 +497,14 @@ export default function ProductionPlanScreen({
           label="Total Plant Capacity"
           value={`${capacitySummaryMetrics.totalCapacity.toLocaleString()} Pcs`}
           sub={`${machines.length} Active Lines (${selectedGrain})`}
-          icon={<Cpu className="w-4 h-4 text-blue-600" />}
+          icon={<Cpu className="w-4 h-4 text-brand-600" />}
           intent="info"
         />
         <KpiCard
           label="Total Scheduled Volume"
           value={`${capacitySummaryMetrics.totalPlanned.toLocaleString()} Pcs`}
           sub={`${products.length} Scheduled SKUs`}
-          icon={<Layers className="w-4 h-4 text-indigo-600" />}
+          icon={<Layers className="w-4 h-4 text-brand-600" />}
           intent="info"
         />
         <KpiCard
@@ -545,7 +547,7 @@ export default function ProductionPlanScreen({
           onClick={() => setActiveTab('schedule')}
           className={`px-4 py-2 text-xs font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
             activeTab === 'schedule'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-brand-600 text-brand-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -556,7 +558,7 @@ export default function ProductionPlanScreen({
           onClick={() => setActiveTab('reports')}
           className={`px-4 py-2 text-xs font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
             activeTab === 'reports'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-brand-600 text-brand-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -578,7 +580,7 @@ export default function ProductionPlanScreen({
                 onClick={() => setSelectedGrain(grain)}
                 className={`px-3 py-1 text-xs font-bold capitalize rounded-md transition-all cursor-pointer ${
                   selectedGrain === grain 
-                    ? 'bg-blue-600 text-white shadow-2xs' 
+                    ? 'bg-brand-600 text-white shadow-2xs' 
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -635,7 +637,7 @@ export default function ProductionPlanScreen({
             className="btn-base btn-secondary gap-1.5"
             title="Open Machine Line Load Balancer"
           >
-            <Cpu className="w-3.5 h-3.5 text-blue-600" /> Re-balance Machine Load
+            <Cpu className="w-3.5 h-3.5 text-brand-600" /> Re-balance Machine Load
           </button>
           <button onClick={loadData} aria-label="Refresh data" className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors cursor-pointer" title="Refresh">
             <RefreshCw className="w-4 h-4" />
@@ -643,9 +645,9 @@ export default function ProductionPlanScreen({
         </div>
       </div>
 
-      {loading ? (
+      {(loading && !hasLoadedOnce) ? (
         <div className="flex justify-center items-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : activeTab === 'schedule' ? (
         /* MAIN INTERACTIVE MPS GRID TAB */
@@ -665,7 +667,7 @@ export default function ProductionPlanScreen({
                 {/* Machine Header */}
                 <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Cpu className="w-4 h-4 text-blue-600" />
+                    <Cpu className="w-4 h-4 text-brand-600" />
                     <div>
                       <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">{mac.name} Line</h3>
                       <p className="text-[10px] text-slate-400 font-sans">{mac.description}</p>
@@ -675,7 +677,7 @@ export default function ProductionPlanScreen({
                     <span className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-md text-[10px] font-bold">
                       Capacity: {dynamicCapacity.toLocaleString()} / period
                     </span>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-[10px] font-bold">
+                    <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-md text-[10px] font-bold">
                       {mProducts.length} SKUs Assigned
                     </span>
                   </div>
@@ -698,10 +700,10 @@ export default function ProductionPlanScreen({
                       </thead>
                       <tbody className="divide-y divide-slate-200 text-xs text-slate-900 bg-white">
                         {mProducts.map(p => (
-                          <tr key={p.id} className="hover:bg-blue-50/20 transition-colors">
+                          <tr key={p.id} className="hover:bg-brand-50/20 transition-colors">
                             <td className="px-4 py-2.5">
                               <div className="font-bold text-slate-900 text-xs leading-snug">{p.name}</div>
-                              <div className="font-mono text-[10px] font-bold text-blue-700 bg-blue-50/80 px-1.5 py-0.5 rounded border border-blue-200/60 inline-block mt-0.5">
+                              <div className="font-mono text-[10px] font-bold text-brand-700 bg-brand-50/80 px-1.5 py-0.5 rounded border border-brand-200/60 inline-block mt-0.5">
                                 {p.sku}
                               </div>
                             </td>
@@ -718,7 +720,7 @@ export default function ProductionPlanScreen({
                                   aria-label={`Production quantity for ${p.sku}, ${formatHeader(col)}`}
                                   value={getCellValue(p.id, col)}
                                   onChange={(e) => handleCellChange(p.id, col, e.target.value)}
-                                  className="w-full text-right p-2 border border-slate-200/80 rounded-lg bg-slate-50/30 hover:border-blue-400 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 focus:outline-hidden font-bold font-mono text-xs text-slate-900 transition-all shadow-3xs"
+                                  className="w-full text-right p-2 border border-slate-200/80 rounded-lg bg-slate-50/30 hover:border-brand-400 focus:border-brand-600 focus:bg-white focus:ring-2 focus:ring-brand-100 focus:outline-hidden font-bold font-mono text-xs text-slate-900 transition-all shadow-3xs"
                                 />
                               </td>
                             ))}
@@ -737,10 +739,10 @@ export default function ProductionPlanScreen({
                         )}
 
                         {mProducts.length > 0 && (
-                          <tr className="bg-blue-50/80 border-t-2 border-blue-300 font-bold text-slate-900">
-                            <td colSpan={2} className="px-4 py-3 uppercase text-[10px] tracking-wider text-blue-950 font-black font-sans">
+                          <tr className="bg-brand-50/80 border-t-2 border-brand-300 font-bold text-slate-900">
+                            <td colSpan={2} className="px-4 py-3 uppercase text-[10px] tracking-wider text-brand-950 font-black font-sans">
                               <div className="flex items-center gap-1.5">
-                                <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
+                                <TrendingUp className="w-3.5 h-3.5 text-brand-600" />
                                 Total {mac.name} Production Volume
                               </div>
                             </td>
@@ -748,7 +750,7 @@ export default function ProductionPlanScreen({
                               const totalVol = calculateMachineColumnSum(mac.name, col);
                               return (
                                 <td key={col} className="px-4 py-3 text-right">
-                                  <span className="font-mono font-black text-xs text-blue-900 bg-white px-2.5 py-1 rounded-md border border-blue-200 shadow-2xs inline-block">
+                                  <span className="font-mono font-black text-xs text-brand-900 bg-white px-2.5 py-1 rounded-md border border-brand-200 shadow-2xs inline-block">
                                     {totalVol.toLocaleString()}
                                   </span>
                                 </td>
@@ -909,10 +911,10 @@ export default function ProductionPlanScreen({
                   </thead>
                   <tbody className="divide-y divide-slate-200 text-xs bg-white">
                     {skuReportRows.map(row => (
-                      <tr key={row.product.id} className="hover:bg-blue-50/20 transition-colors">
+                      <tr key={row.product.id} className="hover:bg-brand-50/20 transition-colors">
                         <td className="px-4 py-3">
                           <div className="font-bold text-slate-900 text-xs leading-snug">{row.product.name}</div>
-                          <div className="font-mono text-[10px] font-bold text-blue-700 bg-blue-50/80 px-1.5 py-0.5 rounded border border-blue-200/60 inline-block mt-0.5">
+                          <div className="font-mono text-[10px] font-bold text-brand-700 bg-brand-50/80 px-1.5 py-0.5 rounded border border-brand-200/60 inline-block mt-0.5">
                             {row.product.sku}
                           </div>
                         </td>
@@ -947,9 +949,9 @@ export default function ProductionPlanScreen({
       {isLoadBalancerOpen && (
         <div className="fixed inset-0 z-[4600] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Re-balance machine line capacity">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col border border-slate-100 font-sans animate-in fade-in zoom-in-95 duration-150">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-blue-50">
-              <h3 className="text-sm font-bold text-blue-950 flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-blue-600" /> Plant Machinery Load Balancer
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-brand-50">
+              <h3 className="text-sm font-bold text-brand-950 flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-brand-600" /> Plant Machinery Load Balancer
               </h3>
               <button 
                 onClick={() => setIsLoadBalancerOpen(false)} 
@@ -960,7 +962,7 @@ export default function ProductionPlanScreen({
             </div>
 
             <div className="p-5 space-y-4 text-xs leading-relaxed">
-              <div className="p-3 bg-blue-50 border border-blue-200 text-blue-900 rounded-lg">
+              <div className="p-3 bg-brand-50 border border-brand-200 text-brand-900 rounded-lg">
                 Re-assign SKU production routing between machine lines (SOFY, VOXY, Atlas, Pants) to relieve machine line overloads (&gt;95% capacity).
               </div>
 
@@ -970,7 +972,7 @@ export default function ProductionPlanScreen({
                   <select
                     value={balancerProductId}
                     onChange={(e) => setBalancerProductId(e.target.value)}
-                    className="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white font-mono font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white font-mono font-semibold text-slate-800 focus:ring-2 focus:ring-brand-500"
                   >
                     {products.map(p => (
                       <option key={p.id} value={p.id}>
@@ -985,7 +987,7 @@ export default function ProductionPlanScreen({
                   <select
                     value={balancerTargetLine}
                     onChange={(e) => setBalancerTargetLine(e.target.value)}
-                    className="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white font-bold text-slate-800 focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white font-bold text-slate-800 focus:ring-2 focus:ring-brand-500"
                   >
                     {machines.map(m => (
                       <option key={m.id} value={m.name}>
@@ -1006,7 +1008,7 @@ export default function ProductionPlanScreen({
               </button>
               <button 
                 onClick={handleRebalanceLine}
-                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Cpu className="w-3.5 h-3.5" /> Re-Assign Machine Line
               </button>

@@ -29,7 +29,7 @@ export default function SortableHeader({
   return (
     <th
       onClick={() => onSort(sortKey)}
-      className={`cursor-pointer select-none hover:bg-blue-900/90 transition-colors group text-center ${textAlignStyle} ${className}`}
+      className={`cursor-pointer select-none hover:bg-brand-900/90 transition-colors group text-center ${textAlignStyle} ${className}`}
       title={`Sort by ${label}`}
     >
       <div className={`flex items-center gap-1.5 ${alignClass}`}>
@@ -42,7 +42,7 @@ export default function SortableHeader({
               <ArrowDown className="w-3.5 h-3.5 text-amber-300 font-bold" />
             )
           ) : (
-            <ArrowUpDown className="w-3 h-3 text-blue-300/60 group-hover:text-white transition-opacity" />
+            <ArrowUpDown className="w-3 h-3 text-brand-300/60 group-hover:text-white transition-opacity" />
           )}
         </span>
       </div>

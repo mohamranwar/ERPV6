@@ -607,7 +607,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
       {/* Target Table Selector Ribbon */}
       <div className="px-6 py-4 bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-xl shrink-0">
+          <div className="p-2.5 bg-brand-600/20 text-brand-400 border border-brand-500/30 rounded-xl shrink-0">
             <Database className="w-5 h-5 animate-pulse" />
           </div>
           <div>
@@ -622,7 +622,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
             id="csv_importer_table_selector"
             value={selectedTableId}
             onChange={(e) => setSelectedTableId(e.target.value)}
-            className="bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-hidden focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            className="bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-hidden focus:ring-1 focus:ring-brand-500 cursor-pointer"
           >
             {SUPPORTED_TABLES.map(t => (
               <option key={t.id} value={t.id}>{t.name}</option>
@@ -659,7 +659,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
               dragActive 
-                ? 'border-blue-500 bg-blue-50/50 scale-[0.99]' 
+                ? 'border-brand-500 bg-brand-50/50 scale-[0.99]' 
                 : 'border-slate-300 hover:border-slate-400 bg-slate-50/30 hover:bg-slate-50/70'
             }`}
             onClick={() => fileInputRef.current?.click()}
@@ -672,7 +672,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
               className="hidden" 
             />
             <div className="p-4 bg-white shadow-3xs rounded-2xl border border-slate-200 mb-3 text-slate-400">
-              <Upload className="w-6 h-6 text-blue-600" />
+              <Upload className="w-6 h-6 text-brand-600" />
             </div>
             <p className="text-xs font-bold text-slate-800">Drag & drop your CSV spreadsheet here</p>
             <p className="text-[10px] text-slate-400 mt-1">Or click to select a file from local explorer</p>
@@ -685,7 +685,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
               value={csvText}
               onChange={(e) => setCsvText(e.target.value)}
               placeholder={`Paste raw spreadsheet contents here...\nExample:\n${getTemplateCsv()}`}
-              className="w-full h-full min-h-[140px] p-4 text-xs font-mono border border-slate-300 rounded-2xl focus:ring-1 focus:ring-blue-500 focus:outline-hidden bg-slate-50/10 focus:bg-white resize-y shadow-3xs"
+              className="w-full h-full min-h-[140px] p-4 text-xs font-mono border border-slate-300 rounded-2xl focus:ring-1 focus:ring-brand-500 focus:outline-hidden bg-slate-50/10 focus:bg-white resize-y shadow-3xs"
             />
             <div className="flex items-center justify-between mt-2">
               <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
@@ -707,7 +707,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
         {parsedHeaders.length > 0 && (
           <div className="space-y-4 pt-4 border-t border-slate-100" id="csv_mapping_section">
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px] font-extrabold uppercase tracking-wide">Step 1</span>
+              <span className="px-2 py-0.5 bg-brand-100 text-brand-800 rounded text-[10px] font-extrabold uppercase tracking-wide">Step 1</span>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Map CSV Columns to System Schema</h3>
             </div>
 
@@ -723,7 +723,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
                   <select aria-label="Mappings"
                     value={mappings[field.key] || ''}
                     onChange={(e) => handleMappingChange(field.key, e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-700 font-semibold focus:ring-1 focus:ring-blue-500 focus:outline-hidden cursor-pointer"
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-700 font-semibold focus:ring-1 focus:ring-brand-500 focus:outline-hidden cursor-pointer"
                   >
                     <option value="">-- Don't Import (Fallback to Null) --</option>
                     {parsedHeaders.map(h => (
@@ -739,7 +739,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
               <button
                 id="global_csv_validate_btn"
                 onClick={handleValidate}
-                className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all shadow-xs"
+                className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-700 transition-all shadow-xs"
               >
                 <Play className="w-3.5 h-3.5" />
                 Validate Mapping Integrity
@@ -753,7 +753,7 @@ export default function GlobalCsvImporter({ onClose, refreshKey = 0 }: { onClose
           <div className="space-y-4 pt-4 border-t border-slate-100" id="csv_validation_report_section">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded text-[10px] font-extrabold uppercase tracking-wide">Step 2</span>
+                <span className="px-2 py-0.5 bg-brand-100 text-brand-800 rounded text-[10px] font-extrabold uppercase tracking-wide">Step 2</span>
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Integrity Audit &amp; Validation</h3>
               </div>
 

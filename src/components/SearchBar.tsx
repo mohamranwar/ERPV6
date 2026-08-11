@@ -45,7 +45,7 @@ export default function SearchBar({
           <span>Search active · filters bypassed</span>
           <button
             onClick={() => onChange('')}
-            className="ms-0.5 rounded hover:bg-indigo-100 p-0.5 transition-colors"
+            className="ms-0.5 rounded hover:bg-brand-100 p-0.5 transition-colors"
             aria-label="Clear active search"
           >
             <X className="w-3 h-3" />
