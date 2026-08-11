@@ -443,7 +443,7 @@ input[type="date"].input-base {
 .input-base:focus {
   outline: none;
   border-color: var(--color-brand-500);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  box-shadow: 0 0 0 3px rgba(31, 112, 126, 0.18);
   background-color: #ffffff;
 }
 
@@ -484,8 +484,8 @@ input[type="date"].input-base {
   box-shadow: var(--shadow-glow-brand);
 }
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #5457e6 0%, #0F4753 100%);
-  box-shadow: 0 8px 22px -6px rgba(79, 70, 229, 0.55);
+  background: linear-gradient(180deg, #1F707E 0%, #0C3843 100%);
+  box-shadow: 0 8px 22px -6px rgba(20, 90, 103, 0.55);
 }
 .btn-primary:disabled {
   opacity: 0.6;
@@ -546,48 +546,60 @@ input[type="date"].input-base {
   box-shadow: 0 4px 14px -2px rgba(16, 185, 129, 0.55);
 }
 
+/* Neutral ink, not amber. A "customize mode" toggle button in the same
+   colour as the WATCH status badge implied a warning that was not there;
+   dark slate reads as "mode switch", which is what it actually is. */
 .btn-amber {
-  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(180deg, #1A414C 0%, #113039 100%);
   color: #ffffff !important;
-  border: 1px solid #b45309;
-  box-shadow: 0 2px 8px -2px rgba(245, 158, 11, 0.4);
+  border: 1px solid #0B2229;
+  box-shadow: 0 2px 8px -2px rgba(26, 65, 76, 0.4);
 }
 .btn-amber:hover:not(:disabled) {
-  background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
-  box-shadow: 0 4px 14px -2px rgba(245, 158, 11, 0.55);
+  background: linear-gradient(180deg, #113039 0%, #0B2229 100%);
+  box-shadow: 0 4px 14px -2px rgba(26, 65, 76, 0.55);
 }
 
+/* Mid petrol -- for secondary utility actions (Refresh, Management pack)
+   that need some emphasis but must not read as the "in transit" status
+   badge, which already owns this hue family at a lighter tint. */
 .btn-sky {
-  background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+  background: linear-gradient(180deg, #1F707E 0%, #145A67 100%);
   color: #ffffff !important;
-  border: 1px solid #075985;
-  box-shadow: 0 2px 8px -2px rgba(2, 132, 199, 0.4);
+  border: 1px solid #0F4753;
+  box-shadow: 0 2px 8px -2px rgba(31, 112, 126, 0.4);
 }
 .btn-sky:hover:not(:disabled) {
-  background: linear-gradient(180deg, #0369a1 0%, #075985 100%);
-  box-shadow: 0 4px 14px -2px rgba(2, 132, 199, 0.55);
+  background: linear-gradient(180deg, #145A67 0%, #0F4753 100%);
+  box-shadow: 0 4px 14px -2px rgba(31, 112, 126, 0.55);
 }
 
+/* Deepest petrol shade -- for "create / open" actions (New Job, New PO,
+   Executive Deck) that deserve more weight than a plain secondary button
+   but are not THE primary action on the screen. */
 .btn-purple {
-  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(180deg, #0F4753 0%, #082A33 100%);
   color: #ffffff !important;
-  border: 1px solid #6d28d9;
-  box-shadow: 0 2px 8px -2px rgba(139, 92, 246, 0.4);
+  border: 1px solid #06171B;
+  box-shadow: 0 2px 8px -2px rgba(15, 71, 83, 0.45);
 }
 .btn-purple:hover:not(:disabled) {
-  background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
-  box-shadow: 0 4px 14px -2px rgba(139, 92, 246, 0.55);
+  background: linear-gradient(180deg, #082A33 0%, #06171B 100%);
+  box-shadow: 0 4px 14px -2px rgba(15, 71, 83, 0.6);
 }
 
+/* Light-mid petrol -- visually a notch below btn-sky, for BOM/secondary
+   actions that were previously an unrelated teal hue sitting awkwardly
+   next to the brand's own (different) teal-family primary colour. */
 .btn-teal {
-  background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
+  background: linear-gradient(180deg, #3E8E9B 0%, #1F707E 100%);
   color: #ffffff !important;
-  border: 1px solid #0f766e;
-  box-shadow: 0 2px 8px -2px rgba(20, 184, 166, 0.4);
+  border: 1px solid #145A67;
+  box-shadow: 0 2px 8px -2px rgba(62, 142, 155, 0.4);
 }
 .btn-teal:hover:not(:disabled) {
-  background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
-  box-shadow: 0 4px 14px -2px rgba(20, 184, 166, 0.55);
+  background: linear-gradient(180deg, #1F707E 0%, #145A67 100%);
+  box-shadow: 0 4px 14px -2px rgba(62, 142, 155, 0.55);
 }
 
 /* ============================================================
@@ -638,7 +650,7 @@ input[type="date"].input-base {
   border-color: #e6e8ef;
 }
 .pill-dark {
-  background: #1e1b4b;
+  background: #06171B;
   color: #A6D3D9;
   border-color: #082A33;
 }
@@ -806,4 +818,15 @@ input[type="date"].input-base {
 }
 .presentation-mode .pack-figure {
   font-variant-numeric: tabular-nums;
+}
+
+/* App sidebar. Was a raw inline style with literal hex values, including
+   the exact old indigo-950 (#1e1b4b) this redesign was meant to remove --
+   which is why it survived every earlier sweep for Tailwind utility classes
+   and CSS-variable references. Moved into a class drawing from the ink
+   ramp so it can never again drift independently of the rest of the
+   palette. */
+.app-sidebar {
+  background: linear-gradient(180deg, #06171B 0%, #0B2229 65%, #082A33 100%);
+  color: #E1EBEE;
 }

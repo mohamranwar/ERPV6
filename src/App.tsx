@@ -304,12 +304,8 @@ export default function App() {
           max-lg:fixed max-lg:inset-y-0 max-lg:w-[18rem] max-lg:shadow-2xl
           ${navOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full'}
           lg:relative lg:translate-x-0
-          ${sidebarPinned ? 'lg:w-64' : 'lg:w-[4.25rem]'}`}
-        style={{
-          background:
-            'linear-gradient(180deg, #1e1b4b 0%, #1e293b 65%, #0f172a 100%)',
-          color: '#e2e8f0',
-        }}
+          ${sidebarPinned ? 'lg:w-64' : 'lg:w-[4.25rem]'}
+          app-sidebar`}
       >
         {/* Brand header */}
         <div className="px-4 py-4 border-b border-white/5 flex items-center justify-between gap-2 min-h-[3.75rem]">
