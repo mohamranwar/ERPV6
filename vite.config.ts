@@ -5,6 +5,17 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // GitHub Pages serves a project site (not a user/org site) from a
+    // subpath: https://<user>.github.io/<repo>/, not the domain root. Every
+    // asset URL Vite emits must be prefixed with that subpath or the deployed
+    // page loads an empty white screen with 404s for every JS/CSS file in
+    // the console -- the single most common reason a Vite app "doesn't work"
+    // on Pages while working fine with `npm run dev`.
+    //
+    // Read from an env var set only by the CI workflow, so local dev and any
+    // other deploy target (Vercel, Netlify, a custom domain) keep serving
+    // from '/' and are unaffected.
+    base: process.env.GH_PAGES_BASE || '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

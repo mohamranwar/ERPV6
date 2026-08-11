@@ -1,0 +1,61 @@
+name: Deploy to GitHub Pages
+
+# Builds and publishes the app on every push to main, so the public link
+# always reflects whatever just merged -- no manual deploy step, no local
+# build, no third-party account. GitHub Pages is part of the repo itself.
+on:
+  push:
+    branches: [main]
+  # Lets you trigger a rebuild by hand from the Actions tab without an
+  # empty commit, e.g. after changing a repo setting that doesn't touch code.
+  workflow_dispatch:
+
+# Pages deploys need to read repo contents and write to the Pages
+# environment; nothing broader than that.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deploy should run at a time. A second push mid-deploy cancels the
+# in-flight one rather than racing it -- the alternative is two deploys
+# writing to Pages concurrently, which is how you get a half-updated site.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # GH_PAGES_BASE tells vite.config.ts to prefix every asset URL with
+      # /<repo-name>/, matching where Pages actually serves a project site
+      # from. This is the only thing that differs from a local `npm run
+      # build` -- everything else in the config is identical.
+      - name: Build
+        env:
+          GH_PAGES_BASE: /${{ github.event.repository.name }}/
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
