@@ -284,11 +284,11 @@ export default function WhatIfSimulator({ searchQuery = '', setSearchQuery, onNa
           {/* Stress Scenario 2: Demand Surge Slider */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-indigo-800 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-indigo-600" /> Market Demand Surge
+              <label className="text-xs font-semibold text-brand-800 flex items-center gap-1">
+                <TrendingUp className="w-3.5 h-3.5 text-brand-600" /> Market Demand Surge
               </label>
               <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-                demandSurgePercent > 0 ? 'bg-indigo-100 text-indigo-900 border-indigo-300' : 'bg-slate-100 text-slate-600 border-slate-200'
+                demandSurgePercent > 0 ? 'bg-brand-100 text-brand-900 border-brand-300' : 'bg-slate-100 text-slate-600 border-slate-200'
               }`}>
                 +{demandSurgePercent}%
               </span>
@@ -300,7 +300,7 @@ export default function WhatIfSimulator({ searchQuery = '', setSearchQuery, onNa
               step={5}
               value={demandSurgePercent}
               onChange={(e) => setDemandSurgePercent(parseInt(e.target.value))}
-              className="w-full accent-indigo-600 cursor-pointer mt-2"
+              className="w-full accent-brand-600 cursor-pointer mt-2"
             />
             <p className="text-[10px] text-slate-500 mt-1">
               Effective Run: <b className="font-mono text-slate-800">{effectiveTargetVolume.toLocaleString()} PCS</b>
@@ -318,7 +318,7 @@ export default function WhatIfSimulator({ searchQuery = '', setSearchQuery, onNa
               className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"
             />
             <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <Sparkles className="w-3.5 h-3.5 text-brand-600" />
               Auto-Route Deficits to Approved Priority 2 Alternate Materials
             </span>
           </label>
@@ -404,7 +404,7 @@ export default function WhatIfSimulator({ searchQuery = '', setSearchQuery, onNa
         <div className="card-elevated p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">Est. Material Cost</span>
-            <TrendingUp className="w-4 h-4 text-indigo-600" />
+            <TrendingUp className="w-4 h-4 text-brand-600" />
           </div>
           <div className="text-2xl font-black font-mono text-slate-900">
             ${simulationResults.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

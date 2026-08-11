@@ -71,6 +71,7 @@ export default function LogisticsScreen({
   const [materials, setMaterials] = useState<Material[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Filter by Sourcing: 'all' | 'local' | 'foreign'
@@ -120,7 +121,7 @@ export default function LogisticsScreen({
       setError(e instanceof Error ? e.message : String(e));
       console.error("Logistics database fetch failed", e);
     } finally {
-      if (!signal.cancelled) setLoading(false);
+      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
     }
   }
 

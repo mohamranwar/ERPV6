@@ -104,6 +104,7 @@ export default function DashboardScreen({
   const [productCoverages, setProductCoverages] = useState<VProductCoverage[]>([]);
   const [fgPsi, setFgPsi] = useState<VFGPSIAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
   const [customizerOpen, setCustomizerOpen] = useState(false);
 
@@ -380,7 +381,7 @@ export default function DashboardScreen({
       if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      if (!signal.cancelled) setLoading(false);
+      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
     }
   }
 
@@ -945,7 +946,7 @@ export default function DashboardScreen({
             <div className="flex items-center justify-between gap-2 flex-wrap border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-[13px] font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                  <Boxes className="w-4 h-4 text-indigo-600" />
+                  <Boxes className="w-4 h-4 text-brand-600" />
                   {config?.title ?? DEFAULT_WIDGET_TITLES.rm_cat_coverage}
                 </h3>
                 <p className="text-[11.5px] text-slate-500">Stock-Only vs Total Cover (Months) with In-Transit & Pending POs.</p>
@@ -1102,7 +1103,7 @@ export default function DashboardScreen({
                     <span className="w-12 shrink-0 text-slate-500 font-semibold">{m.name}</span>
                     <div className="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
                       <div
-                        className={`h-1.5 rounded-full ${m.utilisation > 95 ? 'bg-red-500' : m.utilisation > 0 ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                        className={`h-1.5 rounded-full ${m.utilisation > 95 ? 'bg-red-500' : m.utilisation > 0 ? 'bg-brand-600' : 'bg-slate-200'}`}
                         style={{ width: `${Math.min(100, m.utilisation)}%` }}
                       />
                     </div>
@@ -1220,7 +1221,7 @@ export default function DashboardScreen({
           <div className="card-elevated p-5 sm:p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 shrink-0">
+                <div className="p-2.5 rounded-xl bg-brand-50 text-brand-600 border border-brand-100 shrink-0">
                   <BarChart2 className="w-5 h-5" />
                 </div>
                 <div>
@@ -1389,7 +1390,7 @@ export default function DashboardScreen({
                       <span className="font-extrabold text-slate-800">Dashboard Presets</span>
                       <button
                         onClick={() => { setPresetDropdownOpen(false); setSaveModalOpen(true); }}
-                        className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                        className="text-[11px] font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
                       >
                         <Save className="w-3 h-3" />
                         Save current
@@ -1407,13 +1408,13 @@ export default function DashboardScreen({
                             key={preset.id}
                             onClick={() => handleSelectPreset(preset)}
                             className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-start justify-between gap-2 ${
-                              isSelected ? 'bg-indigo-50 text-indigo-900 font-semibold' : 'hover:bg-slate-50 text-slate-700'
+                              isSelected ? 'bg-brand-50 text-brand-900 font-semibold' : 'hover:bg-slate-50 text-slate-700'
                             }`}
                           >
                             <div>
                               <div className="flex items-center gap-1.5 font-medium">
                                 {preset.name}
-                                {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                                {isSelected && <Check className="w-3.5 h-3.5 text-brand-600 shrink-0" />}
                               </div>
                               <p className="text-[10.5px] text-slate-500 font-normal line-clamp-1">{preset.description}</p>
                             </div>
@@ -1433,13 +1434,13 @@ export default function DashboardScreen({
                                 key={preset.id}
                                 onClick={() => handleSelectPreset(preset)}
                                 className={`group/p w-full text-left px-3 py-2 rounded-lg transition-colors flex items-start justify-between gap-2 cursor-pointer ${
-                                  isSelected ? 'bg-indigo-50 text-indigo-900 font-semibold' : 'hover:bg-slate-50 text-slate-700'
+                                  isSelected ? 'bg-brand-50 text-brand-900 font-semibold' : 'hover:bg-slate-50 text-slate-700'
                                 }`}
                               >
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-1.5 font-medium truncate">
                                     {preset.name}
-                                    {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                                    {isSelected && <Check className="w-3.5 h-3.5 text-brand-600 shrink-0" />}
                                   </div>
                                   <p className="text-[10.5px] text-slate-500 font-normal line-clamp-1">{preset.description}</p>
                                 </div>
@@ -1493,22 +1494,22 @@ export default function DashboardScreen({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="p-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl shadow-xl border border-indigo-700/60 flex flex-col sm:flex-row items-center justify-between gap-4"
+          className="p-4 bg-gradient-to-r from-brand-900 via-brand-800 to-slate-900 text-white rounded-2xl shadow-xl border border-brand-700/60 flex flex-col sm:flex-row items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 rounded-xl shrink-0">
-              <GripVertical className="w-5 h-5 text-indigo-300 animate-bounce" />
+            <div className="p-2.5 bg-brand-500/20 text-brand-200 border border-brand-400/30 rounded-xl shrink-0">
+              <GripVertical className="w-5 h-5 text-brand-300 animate-bounce" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-extrabold tracking-tight text-white">
                   Dashboard Customization Mode Active
                 </p>
-                <span className="px-2 py-0.5 text-[10px] font-mono font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 rounded-full uppercase">
+                <span className="px-2 py-0.5 text-[10px] font-mono font-bold bg-brand-500/30 text-brand-200 border border-brand-400/30 rounded-full uppercase">
                   Live Editing
                 </span>
               </div>
-              <p className="text-xs text-indigo-200/80 mt-0.5">
+              <p className="text-xs text-brand-200/80 mt-0.5">
                 Drag cards by top handle to reorder • Click edge/corner bars to resize width & height • Hide or add modules anytime.
               </p>
             </div>
@@ -1516,21 +1517,21 @@ export default function DashboardScreen({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setCustomizerOpen(true)}
-              className="btn-base bg-indigo-700 hover:bg-indigo-600 text-white border border-indigo-500/40 text-xs gap-1.5 shadow-sm"
+              className="btn-base bg-brand-700 hover:bg-brand-600 text-white border border-brand-500/40 text-xs gap-1.5 shadow-sm"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               Component Catalog ({widgetConfigs.filter(w => w.visible).length}/{widgetConfigs.length})
             </button>
             <button
               onClick={() => setSaveModalOpen(true)}
-              className="btn-base bg-indigo-800 hover:bg-indigo-700 text-white border border-indigo-600/40 text-xs gap-1.5 shadow-sm"
+              className="btn-base bg-brand-800 hover:bg-brand-700 text-white border border-brand-600/40 text-xs gap-1.5 shadow-sm"
             >
               <Save className="w-3.5 h-3.5" />
               Save Preset
             </button>
             <button
               onClick={() => setIsCustomizing(false)}
-              className="btn-base bg-white text-indigo-950 font-bold hover:bg-indigo-50 text-xs px-4 shadow-md"
+              className="btn-base bg-white text-brand-950 font-bold hover:bg-brand-50 text-xs px-4 shadow-md"
             >
               Done Customizing
             </button>
@@ -1567,21 +1568,21 @@ export default function DashboardScreen({
                   onDragEnd={handleGridDragEnd}
                   className={`${spanClass} relative group transition-all duration-200 ${
                     isCustomizing
-                      ? 'ring-2 ring-indigo-400/60 border-2 border-dashed border-indigo-300 rounded-2xl bg-indigo-50/10'
+                      ? 'ring-2 ring-brand-400/60 border-2 border-dashed border-brand-300 rounded-2xl bg-brand-50/10'
                       : ''
                   } ${
-                    isDragging ? 'opacity-40 scale-[0.99] border-2 border-dashed border-indigo-500 rounded-2xl' : ''
+                    isDragging ? 'opacity-40 scale-[0.99] border-2 border-dashed border-brand-500 rounded-2xl' : ''
                   } ${
-                    isDragOver ? 'ring-2 ring-indigo-600 shadow-2xl rounded-2xl scale-[1.01] bg-indigo-100/30' : ''
+                    isDragOver ? 'ring-2 ring-brand-600 shadow-2xl rounded-2xl scale-[1.01] bg-brand-100/30' : ''
                   }`}
                 >
                   {/* Drag, Drop, & Resize Controls (ONLY active when Customization Mode is enabled via button) */}
                   {isCustomizing && (
                     <>
                       {/* Top Control Bar */}
-                      <div className="absolute top-2 right-2 z-20 flex items-center gap-1 bg-white/95 backdrop-blur border border-indigo-200 shadow-lg rounded-xl p-1 text-[11px] ring-2 ring-indigo-400">
+                      <div className="absolute top-2 right-2 z-20 flex items-center gap-1 bg-white/95 backdrop-blur border border-brand-200 shadow-lg rounded-xl p-1 text-[11px] ring-2 ring-brand-400">
                         <div
-                          className="cursor-grab active:cursor-grabbing p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-1 font-semibold text-[10px]"
+                          className="cursor-grab active:cursor-grabbing p-1.5 text-brand-600 hover:bg-brand-50 rounded-lg flex items-center gap-1 font-semibold text-[10px]"
                           title="Drag to rearrange widget position"
                         >
                           <GripVertical className="w-3.5 h-3.5" />
@@ -1609,7 +1610,7 @@ export default function DashboardScreen({
                         <button
                           type="button"
                           onClick={() => handleToggleWidgetWidth(w.id)}
-                          className="px-2 py-0.5 text-[10px] font-mono font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md transition-colors border border-indigo-200"
+                          className="px-2 py-0.5 text-[10px] font-mono font-bold bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-md transition-colors border border-brand-200"
                           title={w.width === 'full' ? 'Switch to Half Width' : 'Switch to Full Width'}
                         >
                           Width: {w.width === 'full' ? '100%' : '50%'}
@@ -1617,7 +1618,7 @@ export default function DashboardScreen({
                         <button
                           type="button"
                           onClick={() => handleCycleWidgetHeight(w.id)}
-                          className="px-2 py-0.5 text-[10px] font-mono font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md transition-colors border border-indigo-200"
+                          className="px-2 py-0.5 text-[10px] font-mono font-bold bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-md transition-colors border border-brand-200"
                           title="Cycle Height (Short -> Normal -> Tall)"
                         >
                           Height: {heightLabel}
@@ -1638,7 +1639,7 @@ export default function DashboardScreen({
                         className="absolute top-1/2 -right-2 -translate-y-1/2 w-5 h-14 z-20 cursor-col-resize flex items-center justify-center group/h"
                         title={`Click edge to toggle width (${w.width === 'full' ? 'Switch to Half width' : 'Switch to Full width'})`}
                       >
-                        <div className="w-2 h-10 bg-indigo-500/90 rounded-full shadow-lg group-hover/h:scale-125 group-hover/h:bg-indigo-600 transition-all border border-white" />
+                        <div className="w-2 h-10 bg-brand-500/90 rounded-full shadow-lg group-hover/h:scale-125 group-hover/h:bg-brand-600 transition-all border border-white" />
                       </div>
 
                       {/* Bottom Edge Handle: Cycle Height */}
@@ -1647,7 +1648,7 @@ export default function DashboardScreen({
                         className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 h-5 w-20 z-20 cursor-row-resize flex items-center justify-center group/v"
                         title={`Click edge to toggle height (${heightLabel} -> Next)`}
                       >
-                        <div className="h-2 w-12 bg-indigo-500/90 rounded-full shadow-lg group-hover/v:scale-125 group-hover/v:bg-indigo-600 transition-all border border-white" />
+                        <div className="h-2 w-12 bg-brand-500/90 rounded-full shadow-lg group-hover/v:scale-125 group-hover/v:bg-brand-600 transition-all border border-white" />
                       </div>
 
                       {/* Bottom-Right Corner Handle: Cycle dimensions */}
@@ -1656,7 +1657,7 @@ export default function DashboardScreen({
                         className="absolute -bottom-2 -right-2 w-6 h-6 z-20 cursor-nwse-resize flex items-center justify-center group/c"
                         title="Click corner to resize height & width"
                       >
-                        <div className="w-3.5 h-3.5 bg-indigo-600 rounded-md shadow-lg group-hover/c:scale-125 group-hover/c:bg-indigo-700 transition-all border border-white" />
+                        <div className="w-3.5 h-3.5 bg-brand-600 rounded-md shadow-lg group-hover/c:scale-125 group-hover/c:bg-brand-700 transition-all border border-white" />
                       </div>
                     </>
                   )}
@@ -1670,9 +1671,9 @@ export default function DashboardScreen({
 
       {/* ── Component Module Catalog / Add Widgets Bar ──────────────────────── */}
       {widgetConfigs.some(w => !w.visible) && (
-        <div className="card-elevated p-5 border-dashed border-2 border-indigo-200/80 bg-indigo-50/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="card-elevated p-5 border-dashed border-2 border-brand-200/80 bg-brand-50/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-100 text-indigo-700 rounded-xl">
+            <div className="p-2.5 bg-brand-100 text-brand-700 rounded-xl">
               <Plus className="w-5 h-5" />
             </div>
             <div>
@@ -1722,7 +1723,7 @@ export default function DashboardScreen({
               onChange={(e) => setNewPresetName(e.target.value)}
               placeholder="e.g. Executive Summary, Daily Procurement View"
               required
-              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">

@@ -35,6 +35,7 @@ export default function CoverageScreen({
   const [materialCoverages, setMaterialCoverages] = useState<VMaterialCoverage[]>([]);
   const [productCoverages, setProductCoverages] = useState<VProductCoverage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   // A failed load used to be swallowed into console.error, so the screen
   // rendered an empty table and a planner could not tell "the database is
   // unreachable" from "there is genuinely no coverage data".
@@ -56,7 +57,7 @@ export default function CoverageScreen({
       if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : 'Failed to fetch inventory coverage details.');
     } finally {
-      if (!signal.cancelled) setLoading(false);
+      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
     }
   }
 
@@ -66,14 +67,14 @@ export default function CoverageScreen({
     if (months < 1.0) return 'bg-red-50 text-red-900 border-red-200'; // OOS
     if (months <= 2.0) return 'bg-amber-50 text-amber-950 border-amber-200'; // Amber warning
     if (months <= 3.0) return 'bg-emerald-50 text-emerald-950 border-emerald-200'; // Normal
-    return 'bg-blue-50 text-blue-950 border-blue-200'; // Overstock
+    return 'bg-brand-50 text-brand-950 border-brand-200'; // Overstock
   };
 
   const getBadgeStyle = (months: number) => {
     if (months < 1.0) return 'bg-red-100 text-red-800 font-bold';
     if (months <= 2.0) return 'bg-amber-100 text-amber-800 font-bold';
     if (months <= 3.0) return 'bg-emerald-100 text-emerald-800 font-bold';
-    return 'bg-blue-100 text-blue-800 font-bold';
+    return 'bg-brand-100 text-brand-800 font-bold';
   };
 
   // Filtration using useTableFilters hook
@@ -170,7 +171,7 @@ export default function CoverageScreen({
           <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md">
             <span>2-3 Mo (Optimal)</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-100 text-blue-800 border border-blue-200 rounded-md">
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-brand-100 text-brand-800 border border-brand-200 rounded-md">
             <span>&gt; 3 Mo (Overstock)</span>
           </div>
           
@@ -180,9 +181,9 @@ export default function CoverageScreen({
         </div>
       </div>
 
-      {loading ? (
+      {(loading && !hasLoadedOnce) ? (
         <div className="flex justify-center items-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs">
@@ -234,7 +235,7 @@ export default function CoverageScreen({
                             <span className={`px-2 py-0.5 rounded-[4px] font-mono text-sm font-bold border ${
                               m.coverage_months < 1.0 ? 'border-red-300 bg-red-100 text-red-900' : 
                               m.coverage_months <= 2.0 ? 'border-amber-300 bg-amber-100 text-amber-900' :
-                              m.coverage_months <= 3.0 ? 'border-emerald-300 bg-emerald-100 text-emerald-900' : 'border-blue-300 bg-blue-100 text-blue-900'
+                              m.coverage_months <= 3.0 ? 'border-emerald-300 bg-emerald-100 text-emerald-900' : 'border-brand-300 bg-brand-100 text-brand-900'
                             }`}>
                               {m.coverage_months} mo
                             </span>
@@ -293,7 +294,7 @@ export default function CoverageScreen({
                             <span className={`px-2 py-0.5 rounded-[4px] font-mono text-sm font-bold border ${
                               p.coverage_months < 1.0 ? 'border-red-300 bg-red-100 text-red-900' : 
                               p.coverage_months <= 2.0 ? 'border-amber-300 bg-amber-100 text-amber-900' :
-                              p.coverage_months <= 3.0 ? 'border-emerald-300 bg-emerald-100 text-emerald-900' : 'border-blue-300 bg-blue-100 text-blue-900'
+                              p.coverage_months <= 3.0 ? 'border-emerald-300 bg-emerald-100 text-emerald-900' : 'border-brand-300 bg-brand-100 text-brand-900'
                             }`}>
                               {p.coverage_months} mo
                             </span>

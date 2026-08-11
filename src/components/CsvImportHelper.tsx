@@ -172,14 +172,14 @@ export default function CsvImportHelper({ fields, onImport, title = "Import from
                   value={csvText}
                   onChange={(e) => setCsvText(e.target.value)}
                   placeholder="SKU,Name,Standard Cost,MOQ&#10;RM-PLP-01,Bleached Fluff Pulp,1.5,20000&#10;RM-NWT-18,Top Sheet Nonwoven,0.8,15000"
-                  className="w-full h-32 p-3 text-xs font-mono border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:outline-hidden"
+                  className="w-full h-32 p-3 text-xs font-mono border border-slate-300 rounded-lg focus:ring-1 focus:ring-brand-500 focus:outline-hidden"
                 />
                 <div className="flex justify-between items-center mt-2">
                   <span className="text-[10px] text-slate-400">Values can be comma or tab-separated.</span>
                   <button
                     id="btn_parse_csv"
                     onClick={handleParse}
-                    className="px-3 py-1 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                    className="px-3 py-1 text-xs font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700"
                   >
                     Parse Data
                   </button>
@@ -206,7 +206,7 @@ export default function CsvImportHelper({ fields, onImport, title = "Import from
                           <select aria-label="Mappings"
                             value={mappings[field.key] || ''}
                             onChange={(e) => handleMappingChange(field.key, e.target.value)}
-                            className="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-md focus:ring-1 focus:ring-blue-500"
+                            className="w-full p-1.5 text-xs bg-white border border-slate-300 rounded-md focus:ring-1 focus:ring-brand-500"
                           >
                             <option value="">-- Don't Import --</option>
                             {parsedHeaders.map(h => (
@@ -262,7 +262,7 @@ export default function CsvImportHelper({ fields, onImport, title = "Import from
                 id="btn_finalize_import"
                 disabled={parsedRows.length === 0}
                 onClick={handleExecuteImport}
-                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Import {parsedRows.length > 0 ? `${parsedRows.length} Rows` : 'Data'}
               </button>

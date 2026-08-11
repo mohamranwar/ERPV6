@@ -51,7 +51,7 @@ const ICON_BG_CLASS: Record<NonNullable<KpiCardProps['intent']>, string> = {
 };
 
 const PROGRESS_CLASS: Record<NonNullable<KpiCardProps['intent']>, string> = {
-  default: 'bg-indigo-600',
+  default: 'bg-brand-600',
   success: 'bg-emerald-500',
   warning: 'bg-amber-500',
   danger:  'bg-red-500',

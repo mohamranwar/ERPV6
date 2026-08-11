@@ -33,7 +33,7 @@ const ROLE_META: Record<
     icon: ClipboardList,
     badgeClass: 'pill pill-brand',
     description: 'Can create and edit plans, master data, and purchase orders.',
-    ringClass: 'ring-indigo-300/50 group-hover:ring-indigo-400/70',
+    ringClass: 'ring-brand-300/50 group-hover:ring-brand-400/70',
   },
   viewer: {
     icon: Eye,
@@ -75,11 +75,11 @@ export default function LoginScreen() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
-        className="hidden lg:flex w-1/2 relative overflow-hidden bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 text-white p-12 flex-col justify-between"
+        className="hidden lg:flex w-1/2 relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-900 to-slate-900 text-white p-12 flex-col justify-between"
       >
         {/* Decorative mesh */}
         <div className="pointer-events-none absolute inset-0 opacity-60">
-          <div className="absolute -top-32 -right-24 w-[28rem] h-[28rem] rounded-full bg-indigo-500/30 blur-3xl" />
+          <div className="absolute -top-32 -right-24 w-[28rem] h-[28rem] rounded-full bg-brand-500/30 blur-3xl" />
           <div className="absolute -bottom-40 -left-20 w-[26rem] h-[26rem] rounded-full bg-fuchsia-500/20 blur-3xl" />
           <div
             className="absolute inset-0"
@@ -101,24 +101,24 @@ export default function LoginScreen() {
             <h1 className="text-sm font-extrabold uppercase tracking-[0.18em]">
               Supply Chain Planner
             </h1>
-            <p className="text-[11px] text-indigo-200/80 mt-0.5 font-medium tracking-wide">
+            <p className="text-[11px] text-brand-200/80 mt-0.5 font-medium tracking-wide">
               Enterprise control tower · v2.4
             </p>
           </div>
         </div>
 
         <div className="relative z-10 max-w-lg space-y-7">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-semibold text-indigo-100 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-semibold text-brand-100 backdrop-blur-sm">
             <Sparkles className="w-3 h-3" />
             Hygiene manufacturing, end to end
           </div>
           <h2 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-balance">
             Plan, produce, and ship with one
-            <span className="block bg-gradient-to-r from-indigo-200 via-white to-fuchsia-200 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-brand-200 via-white to-fuchsia-200 bg-clip-text text-transparent">
               unified cockpit.
             </span>
           </h2>
-          <p className="text-[13px] text-indigo-100/80 leading-relaxed max-w-md">
+          <p className="text-[13px] text-brand-100/80 leading-relaxed max-w-md">
             Sales forecasting, master production scheduling, MRP explosion, stock coverage
             analysis, and live logistics — wired into a single offline-first workspace.
           </p>
@@ -130,18 +130,18 @@ export default function LoginScreen() {
                 className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm"
               >
                 <div className="p-2 rounded-lg bg-white/10 border border-white/10 shrink-0">
-                  <h.icon className="w-4 h-4 text-indigo-100" />
+                  <h.icon className="w-4 h-4 text-brand-100" />
                 </div>
                 <div>
                   <p className="text-[12.5px] font-bold tracking-wide">{h.title}</p>
-                  <p className="text-[11.5px] text-indigo-100/70 leading-relaxed">{h.text}</p>
+                  <p className="text-[11.5px] text-brand-100/70 leading-relaxed">{h.text}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-2 text-[11px] text-indigo-200/60 font-mono">
+        <div className="relative z-10 flex items-center gap-2 text-[11px] text-brand-200/60 font-mono">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-soft" />
           <span>Sandboxed local mode · ready to connect Supabase</span>
         </div>
@@ -156,7 +156,7 @@ export default function LoginScreen() {
           className="w-full max-w-md card-elevated p-7 sm:p-8"
         >
           <div className="flex items-center gap-2.5 mb-1 lg:hidden">
-            <div className="p-2 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600">
+            <div className="p-2 rounded-xl bg-brand-50 border border-brand-100 text-brand-600">
               <Boxes className="w-5 h-5" />
             </div>
             <h1 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">
@@ -173,7 +173,7 @@ export default function LoginScreen() {
           <div className="mt-5 space-y-2.5">
             {loading && (
               <div className="flex justify-center py-10">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-slate-200 border-t-indigo-600" />
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-slate-200 border-t-brand-600" />
               </div>
             )}
 
@@ -196,10 +196,10 @@ export default function LoginScreen() {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, delay: 0.1 + i * 0.05 }}
-                    className={`w-full group flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 transition-all text-start cursor-pointer ring-0 hover:ring-4 ${meta.ringClass}`}
+                    className={`w-full group flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/40 transition-all text-start cursor-pointer ring-0 hover:ring-4 ${meta.ringClass}`}
                   >
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 group-hover:bg-white group-hover:border-indigo-200 transition-colors shrink-0">
-                      <Icon className="w-4 h-4 text-slate-600 group-hover:text-indigo-600 transition-colors" />
+                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 group-hover:bg-white group-hover:border-brand-200 transition-colors shrink-0">
+                      <Icon className="w-4 h-4 text-slate-600 group-hover:text-brand-600 transition-colors" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -213,7 +213,7 @@ export default function LoginScreen() {
                         {meta.description}
                       </p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all shrink-0" />
                   </motion.button>
                 );
               })}

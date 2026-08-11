@@ -213,11 +213,11 @@ export default function DashboardCustomizerModal({
       }
     >
       <div className="space-y-4">
-        <div className="p-3 bg-indigo-50/80 border border-indigo-100 rounded-xl text-xs text-indigo-900 flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+        <div className="p-3 bg-brand-50/80 border border-brand-100 rounded-xl text-xs text-brand-900 flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Drag and drop to reorder dashboard widgets</p>
-            <p className="text-indigo-700 mt-0.5">
+            <p className="text-brand-700 mt-0.5">
               Drag widgets using the handle icon, toggle visibility ON/OFF, or change card width between Half-width and Full-width.
             </p>
           </div>
@@ -235,7 +235,7 @@ export default function DashboardCustomizerModal({
                 item.visible
                   ? 'bg-white border-slate-200 shadow-sm hover:border-slate-300'
                   : 'bg-slate-50 border-slate-200 opacity-60'
-              } ${draggedIndex === idx ? 'border-indigo-500 bg-indigo-50/50 scale-[1.01]' : ''}`}
+              } ${draggedIndex === idx ? 'border-brand-500 bg-brand-50/50 scale-[1.01]' : ''}`}
             >
               {/* Left drag handle + index + Title */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -263,7 +263,7 @@ export default function DashboardCustomizerModal({
                   onClick={() => toggleWidth(item.id)}
                   className={`px-2 py-1 rounded text-[10.5px] font-mono font-bold transition-colors ${
                     item.width === 'full'
-                      ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                      ? 'bg-brand-100 text-brand-700 border border-brand-200'
                       : 'bg-slate-100 text-slate-600 border border-slate-200'
                   }`}
                   title="Toggle Width (Full vs Half Width)"

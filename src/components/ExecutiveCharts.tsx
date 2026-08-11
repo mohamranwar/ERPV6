@@ -47,7 +47,7 @@ export function SalesByPcsChart({
         <p className="text-[11px] text-slate-500">
           Base Case (BC) vs Forecast (FC) monthly sales volume
         </p>
-        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
+        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
           Source: Historical Sales DB (Jul-25 to May-26)
         </span>
       </div>
@@ -133,7 +133,7 @@ export function ProductionByPcsChart({
           PRODUCTION BY PCS
         </h3>
         <p className="text-[11px] text-slate-500">Base Case (BC) vs Forecast (FC) monthly production plan</p>
-        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
+        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
           Source: Historical MPS Production DB (Jul-25 to May-26)
         </span>
       </div>
@@ -217,7 +217,7 @@ export function RawMaterialCoverageChart({
           Raw Material Coverage (Months)
         </h3>
         <p className="text-[11px] text-slate-500">Monthly inventory coverage in months vs 3.0 months safety target</p>
-        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
+        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
           Source: Historical RM Inventory DB (Jun-25 to May-26)
         </span>
       </div>
@@ -293,7 +293,7 @@ export function RawMaterialStockChart({
           Raw Material Stock (June to May-2026)
         </h3>
         <p className="text-[11px] text-slate-500">Stock area (STK) vs monthly material Usage and Purchase Orders (PO)</p>
-        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
+        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
           Source: Historical PO Procurement DB (Jun-25 to May-26)
         </span>
       </div>
@@ -383,7 +383,7 @@ export function FGStockCoverageChart({
           FG Stock Coverage
         </h3>
         <p className="text-[11px] text-slate-500">Finished goods coverage months vs 0.70 month target</p>
-        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
+        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
           Source: Historical FG Inventory DB (Jun-25 to May-26)
         </span>
       </div>
@@ -459,7 +459,7 @@ export function FGStockVsSalesChart({
           FG STK VS Sales (Volume)
         </h3>
         <p className="text-[11px] text-slate-500">Finished goods stock volume (STK) vs sales volume</p>
-        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
+        <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
           Source: Historical FG Sales & Warehouse DB (Jun-25 to May-26)
         </span>
       </div>

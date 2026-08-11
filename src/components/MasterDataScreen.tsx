@@ -44,13 +44,13 @@ const UOMBadgeWithTooltip: React.FC<{
 
   return (
     <div className="relative group inline-block">
-      <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200 cursor-help transition-colors hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700">
+      <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200 cursor-help transition-colors hover:bg-brand-50 hover:border-brand-300 hover:text-brand-700">
         {uom || 'PCS'}
       </span>
       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col z-50 w-60 p-2.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl pointer-events-none">
         <div className="font-bold text-slate-200 border-b border-slate-700 pb-1 mb-1 flex items-center justify-between">
           <span>Unit of Measure: {uom || 'PCS'}</span>
-          <span className="text-[9px] font-mono text-blue-400">Master Rule</span>
+          <span className="text-[9px] font-mono text-brand-400">Master Rule</span>
         </div>
         {matching.length > 0 ? (
           <div className="space-y-1.5 font-mono">
@@ -87,6 +87,7 @@ export default function MasterDataScreen({
   const { hasRole } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('materials');
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Data states
@@ -152,7 +153,7 @@ export default function MasterDataScreen({
       setError(e instanceof Error ? e.message : String(e));
       console.error("Failed to load master data tables", e);
     } finally {
-      if (!signal.cancelled) setLoading(false);
+      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
     }
   }
 
@@ -414,6 +415,7 @@ export default function MasterDataScreen({
       showToast("Import error: " + err.message, "error");
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   };
 
@@ -576,7 +578,7 @@ export default function MasterDataScreen({
             onClick={() => { setActiveTab(tab); setSearchQuery(''); }}
             className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider border-b-2 whitespace-nowrap transition-all focus:outline-hidden cursor-pointer ${
               activeTab === tab 
-                ? 'border-blue-600 text-blue-600 font-bold bg-blue-50/20' 
+                ? 'border-brand-600 text-brand-600 font-bold bg-brand-50/20' 
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -652,7 +654,7 @@ export default function MasterDataScreen({
       {selectedIds.size > 0 && (
         <div className="bg-slate-900 text-white px-4 py-2.5 rounded-md flex flex-wrap items-center justify-between gap-3 shadow-md border border-slate-800 font-sans">
           <div className="flex items-center gap-2 text-xs font-bold">
-            <span className="px-2 py-0.5 bg-blue-600 rounded text-[11px]">{selectedIds.size} Selected</span>
+            <span className="px-2 py-0.5 bg-brand-600 rounded text-[11px]">{selectedIds.size} Selected</span>
             <span className="text-slate-300">items ready for bulk modification</span>
           </div>
 
@@ -699,9 +701,9 @@ export default function MasterDataScreen({
         </div>
       )}
 
-      {loading ? (
+      {(loading && !hasLoadedOnce) ? (
         <div className="flex justify-center items-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : (
         <div className="bg-white border border-slate-300 rounded-md overflow-hidden shadow-2xs font-sans">
@@ -717,7 +719,7 @@ export default function MasterDataScreen({
                           type="checkbox"
                           checked={selectedIds.size > 0 && selectedIds.size === sortedMaterials.length}
                           onChange={() => toggleSelectAll(sortedMaterials)}
-                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                         />
                       </th>
                       <SortableHeader label="Material (Name & SKU)" sortKey="name" sortConfig={matSortConfig} onSort={handleMatSort} className="sticky-col-2 px-4 py-2.5" />
@@ -738,13 +740,13 @@ export default function MasterDataScreen({
                       const catName = matCats.find(c => c.id === m.category_id)?.name || 'Unknown';
                       const isSelected = selectedIds.has(m.id);
                       return (
-                        <tr key={m.id} className={`transition-colors ${isSelected ? 'bg-blue-50/80' : 'hover:bg-slate-50'}`}>
+                        <tr key={m.id} className={`transition-colors ${isSelected ? 'bg-brand-50/80' : 'hover:bg-slate-50'}`}>
                           <td className="px-3 py-2 text-center w-10">
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleSelect(m.id)}
-                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                             />
                           </td>
                           <td className="sticky-col-2 px-4 py-2.5">
@@ -767,7 +769,7 @@ export default function MasterDataScreen({
                           <td className="px-4 py-2.5 text-right font-mono">{m.moq.toLocaleString()}</td>
                           <td className="px-4 py-2.5 text-right font-mono font-semibold">EGP {m.standard_cost.toFixed(3)}</td>
                           <td className="px-4 py-2.5">
-                            <span className={`px-1.5 py-0.5 rounded-[4px] text-[10px] font-semibold ${m.cost_basis === 'weighted_avg' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-600'}`}>
+                            <span className={`px-1.5 py-0.5 rounded-[4px] text-[10px] font-semibold ${m.cost_basis === 'weighted_avg' ? 'bg-brand-50 text-brand-600' : 'bg-slate-50 text-slate-600'}`}>
                               {m.cost_basis}
                             </span>
                           </td>
@@ -777,7 +779,7 @@ export default function MasterDataScreen({
                             </span>
                           </td>
                           <td className="px-4 py-2.5 text-right flex justify-end gap-1.5">
-                            <button onClick={() => handleEdit(m)} className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-sm cursor-pointer">
+                            <button onClick={() => handleEdit(m)} className="p-1 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-sm cursor-pointer">
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={() => handleDelete(m.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-sm cursor-pointer">
@@ -816,7 +818,7 @@ export default function MasterDataScreen({
                           type="checkbox"
                           checked={selectedIds.size > 0 && selectedIds.size === sortedProducts.length}
                           onChange={() => toggleSelectAll(sortedProducts)}
-                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                         />
                       </th>
                       <SortableHeader label="Product (Name & SKU)" sortKey="name" sortConfig={prodSortConfig} onSort={handleProdSort} className="sticky-col-2 px-4 py-2.5" />
@@ -836,13 +838,13 @@ export default function MasterDataScreen({
                       const grpName = prodGroups.find(g => g.id === p.group_id)?.name || 'Unknown';
                       const isSelected = selectedIds.has(p.id);
                       return (
-                        <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-blue-50/80' : 'hover:bg-slate-50'}`}>
+                        <tr key={p.id} className={`transition-colors ${isSelected ? 'bg-brand-50/80' : 'hover:bg-slate-50'}`}>
                           <td className="px-3 py-2 text-center w-10">
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleSelect(p.id)}
-                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                             />
                           </td>
                           <td className="sticky-col-2 px-4 py-2.5">
@@ -868,7 +870,7 @@ export default function MasterDataScreen({
                             </span>
                           </td>
                           <td className="px-4 py-2.5 text-right flex justify-end gap-1.5">
-                            <button onClick={() => handleEdit(p)} className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-sm cursor-pointer">
+                            <button onClick={() => handleEdit(p)} className="p-1 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-sm cursor-pointer">
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={() => handleDelete(p.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-sm cursor-pointer">
@@ -901,7 +903,7 @@ export default function MasterDataScreen({
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-blue-600" /> UOM Conversion Rules Engine
+                    <Sparkles className="w-4 h-4 text-brand-600" /> UOM Conversion Rules Engine
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     Define mathematical ratios for converting consumption units to inventory base units across BOMs and MRP runs.
@@ -909,7 +911,7 @@ export default function MasterDataScreen({
                 </div>
                 <button
                   onClick={handleCreateNew}
-                  className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                  className="flex items-center gap-2 px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                 >
                   <Plus className="w-4 h-4" /> New Rule
                 </button>
@@ -941,7 +943,7 @@ export default function MasterDataScreen({
                       <div
                         key={u.id}
                         className={`bg-white border rounded-xl p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3 ${
-                          isSelected ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200'
+                          isSelected ? 'border-brand-500 bg-brand-50/20' : 'border-slate-200'
                         }`}
                       >
                         <div className="space-y-2">
@@ -949,7 +951,7 @@ export default function MasterDataScreen({
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
                                 u.item_type === 'global'
-                                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                  ? 'bg-brand-50 text-brand-700 border border-brand-200'
                                   : u.item_type === 'material'
                                   ? 'bg-purple-50 text-purple-700 border border-purple-200'
                                   : 'bg-amber-50 text-amber-700 border border-amber-200'
@@ -960,7 +962,7 @@ export default function MasterDataScreen({
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => handleEdit(u)}
-                                className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded cursor-pointer"
+                                className="p-1 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded cursor-pointer"
                                 title="Edit Conversion Rule"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
@@ -989,7 +991,7 @@ export default function MasterDataScreen({
 
                           <div className="space-y-1">
                             <span className="text-[10px] uppercase font-semibold text-slate-400">Conversion Formula</span>
-                            <div className="font-mono text-xs font-bold text-blue-700 bg-blue-50/70 border border-blue-100 rounded-md px-2.5 py-1.5">
+                            <div className="font-mono text-xs font-bold text-brand-700 bg-brand-50/70 border border-brand-100 rounded-md px-2.5 py-1.5">
                               1 {u.from_uom} = {u.conversion_factor.toLocaleString()} {u.to_uom}
                             </div>
                           </div>
@@ -1018,7 +1020,7 @@ export default function MasterDataScreen({
                           type="checkbox"
                           checked={selectedIds.size > 0 && selectedIds.size === (activeTab === 'suppliers' ? sortedSuppliers : activeTab === 'machines' ? sortedMachines : sortedChannels).length}
                           onChange={() => toggleSelectAll(activeTab === 'suppliers' ? sortedSuppliers : activeTab === 'machines' ? sortedMachines : sortedChannels)}
-                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                         />
                       </th>
                       <SortableHeader label="ID" sortKey="id" sortConfig={activeTab === 'suppliers' ? supSortConfig : activeTab === 'machines' ? macSortConfig : chanSortConfig} onSort={activeTab === 'suppliers' ? handleSupSort : activeTab === 'machines' ? handleMacSort : handleChanSort} className="sticky-col-2 px-4 py-2.5" />
@@ -1037,13 +1039,13 @@ export default function MasterDataScreen({
                     {(activeTab === 'suppliers' ? sortedSuppliers : activeTab === 'machines' ? sortedMachines : sortedChannels).map((item: any) => {
                       const isSelected = selectedIds.has(item.id);
                       return (
-                        <tr key={item.id} className={`transition-colors ${isSelected ? 'bg-blue-50/80' : 'hover:bg-slate-50'}`}>
+                        <tr key={item.id} className={`transition-colors ${isSelected ? 'bg-brand-50/80' : 'hover:bg-slate-50'}`}>
                           <td className="px-3 py-2 text-center w-10">
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleSelect(item.id)}
-                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                             />
                           </td>
                           <td className="sticky-col-2 px-4 py-3 font-mono text-slate-500">{item.id}</td>
@@ -1059,7 +1061,7 @@ export default function MasterDataScreen({
                             </>
                           )}
                           <td className="px-4 py-3 text-right flex justify-end gap-1.5">
-                            <button onClick={() => handleEdit(item)} className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-sm cursor-pointer">
+                            <button onClick={() => handleEdit(item)} className="p-1 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-sm cursor-pointer">
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={() => handleDelete(item.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-sm cursor-pointer">
@@ -1148,7 +1150,7 @@ export default function MasterDataScreen({
                     <div className="pt-2 flex items-center gap-6 border-t border-slate-200 text-xs font-semibold">
                       <div>
                         <span className="text-slate-500">Total Horizon Days: </span>
-                        <span className="font-mono text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md">
+                        <span className="font-mono text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded-md">
                           {Number(editItem.supplier_lead_time_days || 0) + Number(editItem.transit_days || 0) + Number(editItem.customs_clearance_days || 0)} days
                         </span>
                       </div>
@@ -1195,7 +1197,7 @@ export default function MasterDataScreen({
                             onClick={() => setEditItem({ ...editItem, cost_basis: basis })}
                             className={`flex-1 py-1.5 text-xs font-semibold rounded-lg border uppercase tracking-wider cursor-pointer ${
                               editItem.cost_basis === basis 
-                                ? 'bg-blue-600 border-blue-600 text-white font-bold' 
+                                ? 'bg-brand-600 border-brand-600 text-white font-bold' 
                                 : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold'
                             }`}
                           >
@@ -1382,9 +1384,9 @@ export default function MasterDataScreen({
                       />
                     </div>
 
-                    <div className="md:col-span-2 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between font-mono text-xs text-blue-900">
-                      <span className="font-semibold text-blue-700">Formula Live Preview:</span>
-                      <span className="font-bold bg-white px-3 py-1 rounded border border-blue-200">
+                    <div className="md:col-span-2 p-3 bg-brand-50 border border-brand-200 rounded-lg flex items-center justify-between font-mono text-xs text-brand-900">
+                      <span className="font-semibold text-brand-700">Formula Live Preview:</span>
+                      <span className="font-bold bg-white px-3 py-1 rounded border border-brand-200">
                         1 {editItem.from_uom || 'FROM'} = {Number(editItem.conversion_factor || 1).toLocaleString()} {editItem.to_uom || 'TO'}
                       </span>
                     </div>
@@ -1434,7 +1436,7 @@ export default function MasterDataScreen({
                 <button
                   id="btn_submit_master_form"
                   type="submit"
-                  className="px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 cursor-pointer"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 cursor-pointer"
                 >
                   Save Record
                 </button>

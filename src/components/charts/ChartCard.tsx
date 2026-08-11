@@ -37,14 +37,23 @@ export interface ChartCardProps {
   precision?: number;
   /** Label for the transpose toggle, e.g. 'Lines' or 'Categories'. */
   seriesLabel?: string;
+  /**
+   * Pin the axis and hide the row/column swap.
+   *
+   * A single-period chart has nothing to transpose: swapping would sum every
+   * series into one bar. Offering a control that cannot produce a meaningful
+   * result is worse than not offering it.
+   */
+  fixedAxis?: AxisMode;
   className?: string;
 }
 
 export default function ChartCard({
   chartId, title, subtitle, periods, seriesNames, plan, actual,
-  unit = '', precision = 1, seriesLabel = 'Series', className = '',
+  unit = '', precision = 1, seriesLabel = 'Series', fixedAxis, className = '',
 }: ChartCardProps) {
-  const [config, setConfigState] = useState<ChartConfig>(() => loadChartConfig(chartId));
+  const [config, setConfigState] = useState<ChartConfig>(
+    () => ({ ...loadChartConfig(chartId), ...(fixedAxis ? { axis: fixedAxis } : {}) }));
   const [showPanel, setShowPanel] = useState(false);
 
   const setConfig = useCallback((next: ChartConfig) => {
@@ -53,8 +62,8 @@ export default function ChartCard({
   }, [chartId]);
 
   const data: ChartDatum[] = useMemo(
-    () => transpose(periods, seriesNames, plan, actual, config.axis as AxisMode),
-    [periods, seriesNames, plan, actual, config.axis],
+    () => transpose(periods, seriesNames, plan, actual, (fixedAxis ?? config.axis) as AxisMode),
+    [periods, seriesNames, plan, actual, config.axis, fixedAxis],
   );
 
   const exportCsv = useCallback(() => {
@@ -109,6 +118,7 @@ export default function ChartCard({
               config={config}
               onChange={setConfig}
               seriesLabel={seriesLabel}
+              hide={fixedAxis ? ['axis'] : undefined}
               className="border-0 rounded-none"
             />
           </div>

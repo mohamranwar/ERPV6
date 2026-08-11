@@ -33,7 +33,7 @@ export default function DataStateWrapper({
         id="data_state_loading"
       >
         <div className="relative flex items-center justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200 border-t-indigo-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-slate-200 border-t-brand-600"></div>
         </div>
         <p className="mt-3.5 text-[12px] font-semibold text-slate-500 animate-pulse">
           Loading system workspace data…

@@ -58,6 +58,7 @@ export default function FinishedGoodsAnalysis({
   const [salesActuals, setSalesActuals] = useState<SalesActual[]>([]);
   const [productionActuals, setProductionActuals] = useState<ProductionActual[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Filters & Options
@@ -128,6 +129,7 @@ export default function FinishedGoodsAnalysis({
       showToast('Failed to load PSI Analysis data: ' + e.message, 'error');
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
   }
 
@@ -415,14 +417,14 @@ export default function FinishedGoodsAnalysis({
               {node.type === 'sku' ? (
                 <button 
                   onClick={() => setSelectedSkuProduct(node.product || null)}
-                  className="text-left font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
+                  className="text-left font-bold text-brand-600 hover:underline flex items-center gap-1.5 cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span className="truncate max-w-[200px] text-xs font-mono">{node.name}</span>
                 </button>
               ) : (
                 <span className="text-xs text-slate-700 capitalize flex items-center gap-1.5">
-                  {node.type === 'category' ? <Tag className="w-3.5 h-3.5 text-indigo-500" /> : <ShoppingBag className="w-3.5 h-3.5 text-blue-500" />}
+                  {node.type === 'category' ? <Tag className="w-3.5 h-3.5 text-brand-500" /> : <ShoppingBag className="w-3.5 h-3.5 text-brand-500" />}
                   {node.name}
                 </span>
               )}
@@ -574,9 +576,9 @@ export default function FinishedGoodsAnalysis({
         </button>
       </div>
 
-      {loading ? (
+      {(loading && !hasLoadedOnce) ? (
         <div className="flex justify-center items-center h-48 bg-white border border-slate-100 rounded-xl">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -587,7 +589,7 @@ export default function FinishedGoodsAnalysis({
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                 PSI Pivot Matrix — {getMonthName(selectedMonth)}
               </h3>
-              <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded uppercase">
+              <span className="text-[10px] bg-brand-50 text-brand-700 font-bold px-2 py-0.5 rounded uppercase">
                 {unit} unit mode
               </span>
             </div>
@@ -630,7 +632,7 @@ export default function FinishedGoodsAnalysis({
                       <td className="px-4 py-3 text-right font-mono">{Math.round(globalTotalMetrics.startStock).toLocaleString()}</td>
                       <td className="px-4 py-3 text-right font-mono">{Math.round(globalTotalMetrics.salesForecast).toLocaleString()}</td>
                       <td className="px-4 py-3 text-right font-mono">{Math.round(globalTotalMetrics.actualSales).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-mono text-blue-700">
+                      <td className="px-4 py-3 text-right font-mono text-brand-700">
                         {(globalTotalMetrics.salesForecast > 0 ? (globalTotalMetrics.actualSales / globalTotalMetrics.salesForecast) * 100 : 0).toFixed(1)}%
                       </td>
                       <td className="px-4 py-3 text-right font-mono">{Math.round(globalTotalMetrics.productionPlan).toLocaleString()}</td>
@@ -639,7 +641,7 @@ export default function FinishedGoodsAnalysis({
                         {(globalTotalMetrics.productionPlan > 0 ? (globalTotalMetrics.actualProduction / globalTotalMetrics.productionPlan) * 100 : 0).toFixed(1)}%
                       </td>
                       <td className="px-4 py-3 text-right font-mono">{Math.round(globalTotalMetrics.expectedStock).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-mono text-indigo-700">
+                      <td className="px-4 py-3 text-right font-mono text-brand-700">
                         {(globalTotalMetrics.salesForecast > 0 ? (globalTotalMetrics.expectedStock / globalTotalMetrics.salesForecast) : 0).toFixed(1)}m
                       </td>
                       <td className="px-4 py-3 text-right font-mono text-slate-900">{CURRENCY} {Math.round(globalTotalMetrics.salesValue).toLocaleString()}</td>
@@ -654,7 +656,7 @@ export default function FinishedGoodsAnalysis({
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-6 font-sans">
             <div>
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-1.5">
-                <BarChart3 className="w-4 h-4 text-blue-600" /> July Sales Value by Group
+                <BarChart3 className="w-4 h-4 text-brand-600" /> July Sales Value by Group
               </h3>
               <p className="text-[11px] text-slate-500 mt-1">Horizontal distribution of forecasted sales value across the selected group-by dimension.</p>
             </div>
@@ -673,7 +675,7 @@ export default function FinishedGoodsAnalysis({
                       </div>
                       <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
                         <div 
-                          className="bg-blue-600 h-full rounded-full transition-all duration-500" 
+                          className="bg-brand-600 h-full rounded-full transition-all duration-500" 
                           style={{ width: `${pct}%` }}
                         ></div>
                       </div>
@@ -683,7 +685,7 @@ export default function FinishedGoodsAnalysis({
               </div>
             )}
 
-            <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-lg text-xs leading-relaxed text-blue-800 space-y-1">
+            <div className="p-4 bg-brand-50/50 border border-brand-100 rounded-lg text-xs leading-relaxed text-brand-800 space-y-1">
               <h4 className="font-bold flex items-center gap-1">
                 <SlidersHorizontal className="w-3.5 h-3.5" /> Drill Down Tip
               </h4>
@@ -700,7 +702,7 @@ export default function FinishedGoodsAnalysis({
           <div ref={skuLedgerRef} className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden flex flex-col border border-slate-100">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div>
-                <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider font-mono">Monthly PSI Balance Sheet</span>
+                <span className="text-[10px] text-brand-600 font-bold uppercase tracking-wider font-mono">Monthly PSI Balance Sheet</span>
                 <h3 className="text-sm font-bold text-slate-900 mt-0.5">
                   {selectedSkuProduct.sku} - {selectedSkuProduct.name}
                 </h3>
@@ -753,7 +755,7 @@ export default function FinishedGoodsAnalysis({
                     <tbody className="divide-y divide-slate-200 text-slate-800">
                       <tr className="hover:bg-slate-50">
                         <td className="px-5 py-4 font-semibold text-slate-600 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                          <span className="w-2 h-2 rounded-full bg-brand-500"></span>
                           Beginning Inventory
                         </td>
                         {skuLedgerData.map(d => (
@@ -787,9 +789,9 @@ export default function FinishedGoodsAnalysis({
                         ))}
                       </tr>
 
-                      <tr className="bg-indigo-50/30 border-t-2 border-indigo-100 font-bold">
-                        <td className="px-5 py-4 uppercase text-[10px] tracking-wider text-indigo-900 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                      <tr className="bg-brand-50/30 border-t-2 border-brand-100 font-bold">
+                        <td className="px-5 py-4 uppercase text-[10px] tracking-wider text-brand-900 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-brand-600"></span>
                           Ending Inventory Balance
                         </td>
                         {skuLedgerData.map(d => {
@@ -798,7 +800,7 @@ export default function FinishedGoodsAnalysis({
                             <td 
                               key={d.monthStr} 
                               className={`px-5 py-4 text-right font-extrabold font-mono text-sm ${
-                                isOos ? 'text-red-600 bg-red-100' : 'text-blue-600'
+                                isOos ? 'text-red-600 bg-red-100' : 'text-brand-600'
                               }`}
                             >
                               {d.endingInventory.toLocaleString()}
