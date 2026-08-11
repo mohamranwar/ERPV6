@@ -751,7 +751,7 @@ export default function DashboardScreen({
     return [...acc.values()].sort((a, b) => b.produced - a.produced);
   }, [prodActuals, salesActuals, productById]);
 
-  if (loading) {
+  if (loading && !hasLoadedOnce) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="flex items-center justify-between">
@@ -923,22 +923,22 @@ export default function DashboardScreen({
         );
 
       case 'sales_by_pcs':
-        return <SalesByPcsChart data={executiveChartData.salesByPcs} height={chartHeight} />;
+        return <SalesByPcsChart data={executiveChartData.salesByPcs} height={chartHeight} caption={chartCaption(executiveChartData, 'Sales actuals')} />;
 
       case 'production_by_pcs':
-        return <ProductionByPcsChart data={executiveChartData.productionByPcs} height={chartHeight} />;
+        return <ProductionByPcsChart data={executiveChartData.productionByPcs} height={chartHeight} caption={chartCaption(executiveChartData, 'Production actuals')} />;
 
       case 'rm_coverage_months':
-        return <RawMaterialCoverageChart data={executiveChartData.rmCoverageMonths} height={chartHeight} />;
+        return <RawMaterialCoverageChart data={executiveChartData.rmCoverageMonths} height={chartHeight} caption={chartCaption(executiveChartData, 'RM inventory')} />;
 
       case 'rm_stock_usage_po':
-        return <RawMaterialStockChart data={executiveChartData.rmStockUsagePo} height={chartHeight} />;
+        return <RawMaterialStockChart data={executiveChartData.rmStockUsagePo} height={chartHeight} caption={chartCaption(executiveChartData, 'PO procurement')} />;
 
       case 'fg_stock_coverage':
-        return <FGStockCoverageChart data={executiveChartData.fgStockCoverage} height={chartHeight} />;
+        return <FGStockCoverageChart data={executiveChartData.fgStockCoverage} height={chartHeight} caption={chartCaption(executiveChartData, 'FG inventory')} />;
 
       case 'fg_stk_vs_sales':
-        return <FGStockVsSalesChart data={executiveChartData.fgStkVsSales} height={chartHeight} />;
+        return <FGStockVsSalesChart data={executiveChartData.fgStkVsSales} height={chartHeight} caption={chartCaption(executiveChartData, 'FG sales & warehouse')} />;
 
       case 'rm_cat_coverage':
         return (

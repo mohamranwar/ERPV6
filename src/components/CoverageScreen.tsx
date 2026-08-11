@@ -129,7 +129,7 @@ export default function CoverageScreen({
       {/* The header and tab switcher stay mounted so the screen keeps its
           identity while data is loading, failing or empty. */}
       <DataStateWrapper
-        loading={loading}
+        loading={loading && !hasLoadedOnce}
         error={error}
         isEmpty={!loading && !error && materialCoverages.length === 0 && productCoverages.length === 0}
         onRetry={loadData}

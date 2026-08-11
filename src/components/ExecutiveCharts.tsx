@@ -33,9 +33,11 @@ import type {
 export function SalesByPcsChart({
   data,
   height = 240,
+  caption,
 }: {
   data: VolumePoint[];
   height?: number;
+  caption?: string;
 }) {
   const chartData = data;
   return (
@@ -48,7 +50,7 @@ export function SalesByPcsChart({
           Base Case (BC) vs Forecast (FC) monthly sales volume
         </p>
         <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
-          Source: Historical Sales DB (Jul-25 to May-26)
+          {caption ?? 'Live data'}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={height}>
@@ -121,9 +123,11 @@ export function SalesByPcsChart({
 export function ProductionByPcsChart({
   data,
   height = 240,
+  caption,
 }: {
   data: VolumePoint[];
   height?: number;
+  caption?: string;
 }) {
   const chartData = data;
   return (
@@ -134,7 +138,7 @@ export function ProductionByPcsChart({
         </h3>
         <p className="text-[11px] text-slate-500">Base Case (BC) vs Forecast (FC) monthly production plan</p>
         <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
-          Source: Historical MPS Production DB (Jul-25 to May-26)
+          {caption ?? 'Live data'}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={height}>
@@ -205,9 +209,11 @@ export function ProductionByPcsChart({
 export function RawMaterialCoverageChart({
   data,
   height = 240,
+  caption,
 }: {
   data: CoveragePoint[];
   height?: number;
+  caption?: string;
 }) {
   const chartData = data;
   return (
@@ -218,7 +224,7 @@ export function RawMaterialCoverageChart({
         </h3>
         <p className="text-[11px] text-slate-500">Monthly inventory coverage in months vs 3.0 months safety target</p>
         <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
-          Source: Historical RM Inventory DB (Jun-25 to May-26)
+          {caption ?? 'Live data'}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={height}>
@@ -281,9 +287,11 @@ export function RawMaterialCoverageChart({
 export function RawMaterialStockChart({
   data,
   height = 240,
+  caption,
 }: {
   data: StockFlowPoint[];
   height?: number;
+  caption?: string;
 }) {
   const chartData = data;
   return (
@@ -294,7 +302,7 @@ export function RawMaterialStockChart({
         </h3>
         <p className="text-[11px] text-slate-500">Stock area (STK) vs monthly material Usage and Purchase Orders (PO)</p>
         <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
-          Source: Historical PO Procurement DB (Jun-25 to May-26)
+          {caption ?? 'Live data'}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={height}>
@@ -371,9 +379,11 @@ export function RawMaterialStockChart({
 export function FGStockCoverageChart({
   data,
   height = 240,
+  caption,
 }: {
   data: CoveragePoint[];
   height?: number;
+  caption?: string;
 }) {
   const chartData = data;
   return (
@@ -384,7 +394,7 @@ export function FGStockCoverageChart({
         </h3>
         <p className="text-[11px] text-slate-500">Finished goods coverage months vs 0.70 month target</p>
         <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
-          Source: Historical FG Inventory DB (Jun-25 to May-26)
+          {caption ?? 'Live data'}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={height}>
@@ -447,9 +457,11 @@ export function FGStockCoverageChart({
 export function FGStockVsSalesChart({
   data,
   height = 240,
+  caption,
 }: {
   data: StockVsSalesPoint[];
   height?: number;
+  caption?: string;
 }) {
   const chartData = data;
   return (
@@ -460,7 +472,7 @@ export function FGStockVsSalesChart({
         </h3>
         <p className="text-[11px] text-slate-500">Finished goods stock volume (STK) vs sales volume</p>
         <span className="mt-1 px-2 py-0.5 text-[9.5px] font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">
-          Source: Historical FG Sales & Warehouse DB (Jun-25 to May-26)
+          {caption ?? 'Live data'}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={height}>

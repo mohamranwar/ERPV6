@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import {
   fetchTableData,
   runMRP,
@@ -46,6 +47,8 @@ import { CURRENCY } from '../utils/uom';
 import ErrorState from './ErrorState';
 import DataStateWrapper from './DataStateWrapper';
 import WhatIfSimulator from './WhatIfSimulator';
+
+const NEVER_CANCELLED: LoadSignal = { cancelled: false };
 
 interface MRPScreenProps {
   searchQuery?: string;
@@ -122,7 +125,7 @@ export default function MRPScreen({
     localStorage.setItem('mrp_horizon', String(horizon));
   }, [horizon]);
 
-  async function loadData(selectLatestRun = false) {
+  async function loadData(selectLatestRun = false, signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
     setError(null);
     try {
@@ -133,6 +136,7 @@ export default function MRPScreen({
         fetchTableData<MRPResult>('mrp_results'),
         fetchClosedPeriods()
       ]);
+      if (signal.cancelled) return;
       setMaterials(mats);
       setSuppliers(sups);
       setPurchaseOrders(pos);
@@ -147,19 +151,19 @@ export default function MRPScreen({
         }
       }
     } catch (e: any) {
+      if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
       showToast('Failed to load MRP data: ' + e.message, 'error');
     } finally {
-      setLoading(false);
-      setHasLoadedOnce(true);
+      if (!signal.cancelled) { setLoading(false); setHasLoadedOnce(true); }
     }
   }
 
-  useEffect(() => {
+  useAsyncLoad((signal) => {
     // A period change in the header bumps refreshKey; follow it so the next
     // solver run covers the window the rest of the app is showing.
     setStartDate(getPlanningPeriod());
-    loadData();
+    return loadData(false, signal);
   }, [refreshKey]);
 
   const handleRunMRP = async () => {
