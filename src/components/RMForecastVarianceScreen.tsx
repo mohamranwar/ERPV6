@@ -7,6 +7,7 @@ import React, { useMemo, useState } from 'react';
 import {
   AlertCircle, AlertTriangle, CheckCircle2, ChevronDown,
   ChevronRight, HelpCircle, TrendingDown, TrendingUp,
+  DollarSign, ShoppingBag, BarChart2, PackageX,
 } from 'lucide-react';
 
 import {
@@ -16,6 +17,9 @@ import type { ClosedPeriod, Material, MRPResult, PurchaseOrder, Supplier } from 
 import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
 import { useFirstLoad } from '../hooks/useFirstLoad';
 import DataStateWrapper from './DataStateWrapper';
+import { KpiCard } from './ui';
+import SortableHeader from './SortableHeader';
+import { useTableSort } from '../hooks/useTableSort';
 import ContentHeader from './ContentHeader';
 import ChartCard from './charts/ChartCard';
 import {
@@ -201,6 +205,10 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
     };
   }, [rows, period]);
 
+  const { sortedItems: sortedRows, sortConfig, handleSort } = useTableSort(
+    rows, 'orderVarianceValue', 'desc'
+  );
+
   // ── Available periods (months represented in MRP results or POs) ─────────
 
   const availablePeriods = useMemo(() => {
@@ -317,43 +325,50 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
             </div>
           )}
 
-          {/* KPI cards */}
+          {/* KPI cards — same KpiCard component as the Dashboard */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              {
-                label: 'Baseline value',
-                value: fmtEgp(totals.baselineValue),
-                sub: 'What MRP planned to order',
-                cls: 'text-slate-900',
-              },
-              {
-                label: 'Ordered value',
-                value: fmtEgp(totals.actualValue),
-                sub: 'What Procurement actually raised',
-                cls: 'text-slate-900',
-              },
-              {
-                label: 'Variance',
-                value: (totals.varianceValue > 0 ? '+' : '') + fmtEgp(totals.varianceValue),
-                sub: totals.variancePct !== null
-                  ? `${totals.variancePct > 0 ? '+' : ''}${fmt(totals.variancePct, 1)}% vs baseline`
-                  : 'No baseline',
-                cls: totals.varianceValue === 0 ? 'text-slate-900'
-                  : totals.varianceValue > 0 ? 'text-red-600' : 'text-emerald-700',
-              },
-              {
-                label: 'Materials off plan',
-                value: String(totals.materialsOffPlan),
-                sub: `${totals.materialsNotOrdered} not ordered · ${totals.materialsUnplanned} unplanned`,
-                cls: totals.materialsOffPlan > 0 ? 'text-red-600' : 'text-emerald-700',
-              },
-            ].map(({ label, value, sub, cls }) => (
-              <div key={label} className="bg-white rounded-xl border border-slate-200 p-4 space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-                <p className={`text-xl font-bold font-mono ${cls}`}>{value}</p>
-                <p className="text-[10px] text-slate-400">{sub}</p>
-              </div>
-            ))}
+            <KpiCard
+              label="Baseline value"
+              value={fmtEgp(totals.baselineValue)}
+              sub="What MRP planned to order"
+              icon={<DollarSign className="w-4 h-4" />}
+              intent="default"
+            />
+            <KpiCard
+              label="Ordered value"
+              value={fmtEgp(totals.actualValue)}
+              sub="What Procurement actually raised"
+              icon={<ShoppingBag className="w-4 h-4" />}
+              intent={totals.actualValue === 0 ? 'warning' : 'default'}
+            />
+            <KpiCard
+              label="Variance"
+              value={(totals.varianceValue > 0 ? '+' : '') + fmtEgp(totals.varianceValue)}
+              sub={totals.variancePct !== null
+                ? `${totals.variancePct > 0 ? '+' : ''}${fmt(totals.variancePct, 1)}% vs baseline`
+                : 'No baseline'}
+              icon={<BarChart2 className="w-4 h-4" />}
+              intent={totals.varianceValue === 0 ? 'success'
+                : Math.abs(totals.variancePct ?? 999) <= tolerance.onPlanPct ? 'success'
+                : Math.abs(totals.variancePct ?? 999) <= tolerance.watchPct ? 'warning'
+                : 'danger'}
+              trend={totals.variancePct !== null ? -totals.variancePct : undefined}
+              trendLabel={totals.variancePct !== null ? `${Math.abs(totals.variancePct).toFixed(1)}%` : undefined}
+            />
+            <KpiCard
+              label="Materials off plan"
+              value={totals.materialsOffPlan}
+              sub={`${totals.materialsNotOrdered} not ordered · ${totals.materialsUnplanned} unplanned`}
+              icon={<PackageX className="w-4 h-4" />}
+              intent={totals.materialsOffPlan === 0 ? 'success' : 'danger'}
+              badge={totals.materialsNotOrdered > 0 ? {
+                label: `${totals.materialsNotOrdered} not ordered`,
+                intent: 'danger',
+              } : totals.materialsUnplanned > 0 ? {
+                label: `${totals.materialsUnplanned} unplanned`,
+                intent: 'warning',
+              } : undefined}
+            />
           </div>
 
           {/* Chart */}
@@ -396,17 +411,17 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       <th className="text-left px-4 py-2.5 w-6"></th>
-                      <th className="text-left px-4 py-2.5">Material</th>
-                      <th className="text-right px-4 py-2.5">Baseline qty</th>
-                      <th className="text-right px-4 py-2.5">Forecast drift</th>
-                      <th className="text-right px-4 py-2.5">Ordered qty</th>
-                      <th className="text-right px-4 py-2.5">Variance</th>
-                      <th className="text-right px-4 py-2.5">Variance value</th>
+                      <SortableHeader label="Material" sortKey="materialName" sortConfig={sortConfig} onSort={handleSort} align="left" className="px-4 py-2.5" />
+                      <SortableHeader label="Baseline qty" sortKey="baselineQty" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
+                      <SortableHeader label="Forecast drift" sortKey="forecastDriftQty" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
+                      <SortableHeader label="Ordered qty" sortKey="actualQty" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
+                      <SortableHeader label="Variance %" sortKey="orderVariancePct" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
+                      <SortableHeader label="Variance value" sortKey="orderVarianceValue" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
                       <th className="text-center px-4 py-2.5">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {rows.map(row => (
+                    {sortedRows.map(row => (
                       <React.Fragment key={row.materialId}>
                         <tr
                           className={`hover:bg-slate-50 cursor-pointer transition-colors ${
