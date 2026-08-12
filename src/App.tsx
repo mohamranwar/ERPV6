@@ -30,6 +30,7 @@ const GlobalCsvImporter = lazy(() => import('./components/GlobalCsvImporter'));
 const WhatIfSimulator = lazy(() => import('./components/WhatIfSimulator'));
 const ExportForecastScreen = lazy(() => import('./components/ExportForecastScreen'));
 const MRPScreen = lazy(() => import('./components/MRPScreen'));
+const RMForecastVarianceScreen = lazy(() => import('./components/RMForecastVarianceScreen'));
 const CustomsClearanceScreen = lazy(() => import('./components/CustomsClearanceScreen'));
 const SettingsScreen = lazy(() => import('./components/SettingsScreen'));
 const MonthCloseContainer = lazy(() => import('./components/MonthCloseContainer'));
@@ -41,7 +42,7 @@ import {
   LineChart, FolderGit2, Truck, BarChart4, ClipboardList, Upload,
   ChevronLeft, ChevronRight, UserCircle2, CalendarRange, Menu, X,
   Download, Maximize2, Minimize2, Box, Sparkles, Globe, Search,
-  Lock,
+  Lock, TrendingDown,
 } from 'lucide-react';
 
 type ScreenID =
@@ -62,11 +63,13 @@ type ScreenID =
   | 'csv_importer'
   | 'what_if'
   | 'settings'
-  | 'month_close';
+  | 'month_close'
+  | 'rm_forecast_variance';
 
 const SCREEN_META: Record<ScreenID, { title: string; subtitle: string }> = {
   settings: { title: 'Settings', subtitle: 'Labels, thresholds, calendar and formats' },
   month_close: { title: 'Month Close', subtitle: 'Freeze a period so history stops moving' },
+  rm_forecast_variance: { title: 'RM Forecast vs PO', subtitle: 'Compare planned orders against what was actually raised' },
   dashboard: { title: 'SC KPIs Dashboard', subtitle: 'Supply chain pulse at a glance' },
   bom: { title: 'BOM', subtitle: 'Bill of materials & cost engine' },
   sales_plan: { title: 'Sales Demand Plan', subtitle: 'Channel-aware forecasting' },
@@ -95,6 +98,7 @@ const NAV_GROUPS: Array<{ label: string; items: Array<{ id: ScreenID; label: str
       { id: 'export_forecast', label: 'Export Order', icon: Globe },
       { id: 'production_plan', label: 'MPS Production', icon: Cpu },
       { id: 'mrp', label: 'MRP Engine', icon: Play },
+      { id: 'rm_forecast_variance', label: 'RM Forecast vs PO', icon: TrendingDown },
       { id: 'drill_down', label: 'Material Check', icon: Info },
       { id: 'material_inspection', label: 'Material Inspection', icon: ShieldCheck },
       { id: 'what_if', label: 'What-If Simulation', icon: Sparkles },
