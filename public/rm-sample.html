@@ -73,12 +73,9 @@ tr.tot:hover td{background:var(--s3)}
 .neg{color:var(--risk-tx)}
 .mut{color:var(--ink-300)}
 
-.gauge{position:relative;height:5px;border-radius:999px;background:var(--ink-100);min-width:56px;display:inline-block;width:100%}
-.gauge i{display:block;height:100%;border-radius:999px;background:var(--brand-600)}
-.gauge[data-s=over] i{background:var(--ok)}
-.gauge[data-s=under] i{background:var(--risk)}
-.gauge[data-s=watch] i{background:var(--watch)}
-.gauge u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-800);opacity:.45}
+.supcol{text-align:left !important;font-family:var(--sans) !important;color:var(--ink-600);
+  font-size:10.5px;font-weight:500;white-space:nowrap}
+th.supcol{color:var(--ink-400)}
 
 .note{font-size:10.5px;color:var(--ink-500);line-height:1.65}
 .banner{display:flex;gap:10px;padding:11px 13px;border-radius:10px;align-items:flex-start;margin-top:11px}
@@ -162,8 +159,9 @@ tr.tot:hover td{background:var(--s3)}
     </div>
     <div class="tw"><table id="grid"></table></div>
     <div class="legend">
-      <span><i class="sw" style="background:var(--brand-600)"></i>Forecast (planned orders)</span>
-      <span><i class="sw" style="background:var(--ink-800)"></i>Ordered (actual PO)</span>
+      <span><b>Forecast</b> = planned orders from MRP</span>
+      <span><b>Ordered</b> = actual PO raised</span>
+      <span><b>%</b> = ordered ÷ forecast</span>
       <span><i class="sw" style="background:#FCFBF7;border:1px solid #F5E2B8"></i>Projected — no MRP plan</span>
       <span><i class="sw chip--ok" style="border:1px solid var(--ok-bd)"></i>≥100%</span>
       <span><i class="sw chip--watch" style="border:1px solid var(--watch-bd)"></i>85–99%</span>
@@ -328,7 +326,7 @@ function draw(){
   const cols = MONTHS.slice(0, showMonths);
 
   /* header */
-  let head = '<thead><tr><th rowspan="2">Material</th>';
+  let head = '<thead><tr><th rowspan="2">Material</th><th rowspan="2" class="supcol">Supplier</th>';
   cols.forEach((m,i)=>{
     const proj = i>=MRP_MONTHS;
     head += `<th colspan="3" class="mgroup" style="text-align:center">${m}
@@ -337,27 +335,22 @@ function draw(){
   });
   head += '</tr><tr>';
   cols.forEach((_,i)=>{
-    head += `<th class="mgroup">Forecast</th><th>${i<MRP_MONTHS?'Ordered':''}</th><th>${i<MRP_MONTHS?'Var':'±15%'}</th>`;
+    head += `<th class="mgroup">Forecast</th><th>${i<MRP_MONTHS?'Ordered':''}</th><th>${i<MRP_MONTHS?'%':'±15%'}</th>`;
   });
   head += '</tr></thead>';
 
   /* body */
   let body = '<tbody>';
   MATERIALS.forEach(m=>{
-    body += `<tr><td><div class="mname">${m.name}</div><div class="msku">${m.sku} · ${m.sup}</div></td>`;
+    body += `<tr><td><div class="mname">${m.name}</div><div class="msku">${m.sku}</div></td>`
+           + `<td class="supcol">${m.sup}</td>`;
     cols.forEach((_,i)=>{
       const c = cellsFor(m.sku,i);
       if(!c.projected){
         const [cls,txt] = band(c.pct);
-        const g = c.pct===null?'':(c.pct>=100?'over':c.pct>=85?'watch':'under');
-        const w = c.pct===null?0:Math.min(c.pct,130)/130*100;
         body += `<td class="mgroup">${nf(c.fc)}</td>
                  <td style="font-weight:700">${c.po===0?'<span class="mut">—</span>':nf(c.po)}</td>
-                 <td class="${c.varq>=0?'pos':'neg'}">
-                   ${c.varq===0?'<span class="mut">0</span>':(c.varq>0?'+':'−')+nf(Math.abs(c.varq))}
-                   <div class="gauge" data-s="${g}" style="margin-top:3px">
-                     <i style="width:${w}%"></i><u style="left:${100/130*100}%"></u></div>
-                 </td>`;
+                 <td><span class="chip chip--${cls}">${txt}</span></td>`;
       } else {
         body += `<td class="mgroup" style="font-style:italic;color:var(--ink-600)">${nf(c.fc)}</td>
                  <td class="mut">—</td>
@@ -372,13 +365,14 @@ function draw(){
   /* totals — real months only */
   let tf=0,tp=0;
   MATERIALS.forEach(m=>{ for(let i=0;i<MRP_MONTHS;i++){ tf+=PLAN[m.sku][i]; tp+=ACT[m.sku][i]; } });
-  body += `<tr class="tot"><td>Total — MRP months only</td>`;
+  body += `<tr class="tot"><td>Total — MRP months only</td><td class="supcol mut">All suppliers</td>`;
   cols.forEach((_,i)=>{
     if(i<MRP_MONTHS){
       let f=0,a=0; MATERIALS.forEach(m=>{ f+=PLAN[m.sku][i]; a+=ACT[m.sku][i]; });
-      const v=a-f;
+      const pc = f>0 ? Math.round(a/f*100) : null;
+      const [tc,tt] = band(pc);
       body += `<td class="mgroup">${nf(f)}</td><td>${nf(a)}</td>
-               <td class="${v>=0?'pos':'neg'}">${v===0?'0':(v>0?'+':'−')+nf(Math.abs(v))}</td>`;
+               <td><span class="chip chip--${tc}">${tt}</span></td>`;
     } else {
       body += `<td class="mgroup mut">—</td><td class="mut">—</td><td class="mut">—</td>`;
     }
