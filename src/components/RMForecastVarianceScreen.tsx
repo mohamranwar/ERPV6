@@ -28,6 +28,7 @@ import {
   VARIANCE_REASON_LABELS,
   type VarianceReason, type VarianceReasonCode,
 } from '../supabaseClient';
+import { useAppSettings } from '../hooks/useAppSettings';
 
 const NEVER_CANCELLED = { cancelled: false };
 
@@ -110,6 +111,11 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
   } | null>(null);
 
   const { isFirstLoad, markLoaded } = useFirstLoad('rm_forecast_variance');
+  const { settings } = useAppSettings();
+  const tolerance = {
+    onPlanPct: settings.thresholds.variance_on_plan_pct,
+    watchPct: settings.thresholds.variance_watch_pct,
+  };
 
   async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
@@ -140,6 +146,13 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
 
   useAsyncLoad((signal) => loadData(signal), [refreshKey]);
 
+  // Reload reasons whenever the period selector changes -- they are period-
+  // specific and the main load only fires on refreshKey.
+  useAsyncLoad(async (signal) => {
+    const list = await fetchVarianceReasons(period);
+    if (!signal.cancelled) setReasons(list);
+  }, [period]);
+
   // ── Variance computation ─────────────────────────────────────────────────
 
   const closedForPeriod = useMemo(
@@ -169,7 +182,7 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
 
   const rows = useMemo(
     () => buildVarianceRows({
-      baselineResults, currentResults, purchaseOrders, materials, suppliers, period,
+      baselineResults, currentResults, purchaseOrders, materials, suppliers, period, tolerance,
     }),
     [baselineResults, currentResults, purchaseOrders, materials, suppliers, period],
   );

@@ -359,6 +359,20 @@ export default function SettingsScreen({ previewRows = [] }: SettingsScreenProps
                       onChange={e => setThreshold('po_on_time_target_pct', Number(e.target.value))} />
                     <p className="text-[10px] text-slate-400 mt-1">%</p>
                   </div>
+
+                  <div>
+                    <label htmlFor="th_var_ok" className={labelCls}>RM variance — on plan</label>
+                    <input id="th_var_ok" type="number" step="0.5" className={`${inputCls} mt-1`} value={t.variance_on_plan_pct}
+                      onChange={e => setThreshold('variance_on_plan_pct', Number(e.target.value))} />
+                    <p className="text-[10px] text-slate-400 mt-1">% — ordered within this of baseline = on plan</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="th_var_watch" className={labelCls}>RM variance — watch</label>
+                    <input id="th_var_watch" type="number" step="0.5" className={`${inputCls} mt-1`} value={t.variance_watch_pct}
+                      onChange={e => setThreshold('variance_watch_pct', Number(e.target.value))} />
+                    <p className="text-[10px] text-slate-400 mt-1">% — beyond this = off plan</p>
+                  </div>
                 </div>
               </Card>
 

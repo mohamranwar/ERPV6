@@ -2423,3 +2423,46 @@ export async function deleteVarianceReason(id: string): Promise<void> {
     if (error) throw new Error(`Failed to delete reason: ${error.message}`);
   }
 }
+
+// ---------------------------------------------------------------------------
+// MRP run log (Phase 2)
+// ---------------------------------------------------------------------------
+// Lightweight: just a label on each run so the variance screen can tell
+// "this week's baseline" from "a one-off ad-hoc run" without guessing.
+// Stored locally only -- no schema change needed for this to be useful.
+
+export type MRPRunType = 'weekly_refresh' | 'month_close_baseline' | 'ad_hoc';
+
+export interface MRPRunLogEntry {
+  run_id: string;
+  run_type: MRPRunType;
+  period: string;
+  logged_at: string;
+  notes?: string;
+}
+
+const LOCAL_MRP_RUN_LOG = 'mrp_run_log';
+
+export function logMRPRun(
+  runId: string,
+  period: string,
+  runType: MRPRunType,
+  notes?: string,
+): void {
+  const entry: MRPRunLogEntry = {
+    run_id: runId,
+    run_type: runType,
+    period: period.slice(0, 7) + '-01',
+    logged_at: new Date().toISOString(),
+    notes,
+  };
+  const existing = readLocalTable<MRPRunLogEntry>(LOCAL_MRP_RUN_LOG);
+  // Keep at most 200 entries -- one per run, every week for ~4 years.
+  writeLocalTable(LOCAL_MRP_RUN_LOG, [entry, ...existing].slice(0, 200));
+}
+
+export function getMRPRunLog(period?: string): MRPRunLogEntry[] {
+  const all = readLocalTable<MRPRunLogEntry>(LOCAL_MRP_RUN_LOG);
+  if (!period) return all;
+  return all.filter(e => e.period?.slice(0, 7) === period.slice(0, 7));
+}

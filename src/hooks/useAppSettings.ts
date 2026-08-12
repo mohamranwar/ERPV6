@@ -35,6 +35,10 @@ export interface Thresholds {
   fg_coverage_ok_months: number;
   capacity_warning_pct: number;
   po_on_time_target_pct: number;
+  /** RM variance within this % of baseline is on plan. */
+  variance_on_plan_pct: number;
+  /** RM variance within this % is a watch item; beyond is off plan. */
+  variance_watch_pct: number;
 }
 
 export interface CalendarSettings {
@@ -63,6 +67,8 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   fg_coverage_ok_months: 1.5,
   capacity_warning_pct: 95,
   po_on_time_target_pct: 95,
+  variance_on_plan_pct: 5,
+  variance_watch_pct: 10,
 };
 
 export const DEFAULT_CALENDAR: CalendarSettings = {

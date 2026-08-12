@@ -16,7 +16,8 @@ import {
   MS_PER_DAY,
   toDateStr,
   fetchClosedPeriods,
-  closePlanningPeriod
+  closePlanningPeriod,
+  logMRPRun,
 } from '../supabaseClient';
 import { Material, Supplier, PurchaseOrder, MRPResult, SubstitutionProposal, ClosedPeriod } from '../types';
 import {
@@ -173,6 +174,8 @@ export default function MRPScreen({
       const { run_id, substitutions: subs } = await runMRP(startDate, horizon, grain);
       setSubstitutions(subs);
       setMrpRunId(run_id);
+      // Log so the variance screen can tell this run from a baseline or weekly refresh.
+      logMRPRun(run_id, startDate, 'ad_hoc');
       await loadData(true);
       showToast(`MRP completed successfully! Run ID: ${run_id}`, 'success');
     } catch (err: any) {
