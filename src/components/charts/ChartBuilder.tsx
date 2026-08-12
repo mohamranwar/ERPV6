@@ -4,6 +4,7 @@
  */
 
 import React, { useMemo } from 'react';
+import { chartColors } from '../../utils/chartColors';
 import {
   Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Legend, Line,
   LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -27,17 +28,22 @@ import {
  */
 
 // ── Palette ────────────────────────────────────────────────────────────────
-// Mirrors the tokens in theme.css. Recharts needs literal colours for SVG
-// fills, so these cannot be `var(--...)` references.
-const PLAN_STROKE = '#7A5AF8';
-const PLAN_FILL = 'rgba(122, 90, 248, 0.10)';
-const ACTUAL_FILL = '#145A67';
-const OVER_FILL = '#12B76A';
-const UNDER_FILL = '#D92D20';
-const GRID = '#E1EBEE';
-const AXIS = '#6F97A2';
-const REF = '#113039';
-const INK = '#0B2229';
+// Recharts needs literal colours for SVG fills -- an SVG attribute cannot
+// resolve `var(--token)`. These previously held hardcoded copies of the
+// theme, with a comment saying they "mirror" it, which is precisely how a
+// rebrand leaves a handful of chart bars on the old palette while the rest
+// of the app changes. They now read the real tokens at render time, so
+// index.css stays the single source of truth and dark mode works too.
+const c = () => chartColors();
+const PLAN_STROKE = () => c().planStroke;
+const PLAN_FILL = () => c().planFill;
+const ACTUAL_FILL = () => c().actual;
+const OVER_FILL = () => c().over;
+const UNDER_FILL = () => c().under;
+const GRID = () => c().grid;
+const AXIS = () => c().axis;
+const REF = () => c().ref;
+const INK = () => c().ref;
 
 export type ChartType = 'grouped' | 'stacked' | 'line';
 export type Measure = 'pva' | 'actual' | 'plan' | 'variance' | 'attainment';
@@ -185,14 +191,14 @@ export function ChartBuilder({
 
   /** Fill for one actual bar, honouring the colour-by-target switch. */
   const actualFill = (row: Row): string => {
-    if (!config.colorByTarget || !config.showTarget) return ACTUAL_FILL;
+    if (!config.colorByTarget || !config.showTarget) return ACTUAL_FILL();
     if (config.measure === 'attainment') {
-      return (row.attainment ?? 0) >= config.targetValue ? OVER_FILL : UNDER_FILL;
+      return (row.attainment ?? 0) >= config.targetValue ? OVER_FILL() : UNDER_FILL();
     }
     if (config.measure === 'pva') {
-      return row.actual >= row.plan ? ACTUAL_FILL : UNDER_FILL;
+      return row.actual >= row.plan ? ACTUAL_FILL() : UNDER_FILL();
     }
-    return ACTUAL_FILL;
+    return ACTUAL_FILL();
   };
 
   const labelFor = (row: Row, key: string): string => {
@@ -211,7 +217,7 @@ export function ChartBuilder({
     <Tooltip
       cursor={{ fill: 'rgba(20, 90, 103, 0.05)' }}
       contentStyle={{
-        background: '#06171B', border: 'none', borderRadius: 8,
+        background: chartColors().ref, border: 'none', borderRadius: 8,
         padding: '8px 11px', fontSize: 11, color: '#fff',
         boxShadow: '0 6px 16px -4px rgba(6,23,27,.3)',
       }}
@@ -225,14 +231,14 @@ export function ChartBuilder({
   const axes = (
     <>
       {config.showGrid && (
-        <CartesianGrid stroke={GRID} vertical={false}
+        <CartesianGrid stroke={GRID()} vertical={false}
           strokeDasharray={config.gridCount > 6 ? '2 2' : undefined} />
       )}
       <XAxis
         dataKey="category"
-        tick={{ fontSize: 10, fill: AXIS, fontFamily: 'var(--font-mono)' }}
+        tick={{ fontSize: 10, fill: AXIS(), fontFamily: 'var(--font-mono)' }}
         tickLine={false}
-        axisLine={{ stroke: GRID }}
+        axisLine={{ stroke: GRID() }}
         angle={config.rotateLabels ? -45 : 0}
         textAnchor={config.rotateLabels ? 'end' : 'middle'}
         height={config.rotateLabels ? 56 : 28}
@@ -242,7 +248,7 @@ export function ChartBuilder({
         hide={!config.showYAxis}
         domain={domain}
         tickCount={config.gridCount + 1}
-        tick={{ fontSize: 10, fill: AXIS, fontFamily: 'var(--font-mono)' }}
+        tick={{ fontSize: 10, fill: AXIS(), fontFamily: 'var(--font-mono)' }}
         tickLine={false}
         axisLine={false}
         width={46}
@@ -251,19 +257,19 @@ export function ChartBuilder({
       {series.length > 1 && (
         <Legend
           verticalAlign="top" align="right" height={26}
-          wrapperStyle={{ fontSize: 11, fontWeight: 600, color: AXIS }}
+          wrapperStyle={{ fontSize: 11, fontWeight: 600, color: AXIS() }}
         />
       )}
       {config.showTarget && (
         <ReferenceLine
           y={config.targetValue}
-          stroke={REF}
+          stroke={REF()}
           strokeWidth={1.6}
           strokeDasharray="6 4"
           label={{
             value: `${config.targetCaption} ${config.targetValue}`,
             position: 'insideTopRight',
-            fill: REF, fontSize: 10, fontWeight: 700,
+            fill: REF(), fontSize: 10, fontWeight: 700,
             fontFamily: 'var(--font-mono)',
           }}
         />
@@ -282,8 +288,8 @@ export function ChartBuilder({
       barSize={barSize}
       radius={[2, 2, 0, 0]}
       isAnimationActive={false}
-      fill={s.ghost ? PLAN_FILL : ACTUAL_FILL}
-      stroke={s.ghost ? PLAN_STROKE : undefined}
+      fill={s.ghost ? PLAN_FILL() : ACTUAL_FILL()}
+      stroke={s.ghost ? PLAN_STROKE() : undefined}
       strokeWidth={s.ghost ? 1.3 : 0}
       strokeDasharray={s.ghost ? '4 3' : undefined}
     >
@@ -295,7 +301,7 @@ export function ChartBuilder({
           key={i}
           fill={
             config.measure === 'variance'
-              ? (row.variance >= 0 ? OVER_FILL : UNDER_FILL)
+              ? (row.variance >= 0 ? OVER_FILL() : UNDER_FILL())
               : actualFill(row)
           }
         />
@@ -317,7 +323,7 @@ export function ChartBuilder({
                 fontSize={config.labelSize}
                 fontWeight={700}
                 fontFamily="var(--font-mono)"
-                fill={s.ghost ? PLAN_STROKE : INK}
+                fill={s.ghost ? PLAN_STROKE() : INK()}
               >
                 {text}
               </text>
@@ -334,11 +340,11 @@ export function ChartBuilder({
       type="monotone"
       dataKey={s.key}
       name={s.name}
-      stroke={s.ghost ? PLAN_STROKE : ACTUAL_FILL}
+      stroke={s.ghost ? PLAN_STROKE() : ACTUAL_FILL()}
       strokeWidth={2.4}
       strokeDasharray={s.ghost ? '5 4' : undefined}
-      dot={{ r: 3.2, fill: s.ghost ? '#fff' : ACTUAL_FILL,
-             stroke: s.ghost ? PLAN_STROKE : '#fff', strokeWidth: 1.8 }}
+      dot={{ r: 3.2, fill: s.ghost ? '#fff' : ACTUAL_FILL(),
+             stroke: s.ghost ? PLAN_STROKE() : '#fff', strokeWidth: 1.8 }}
       activeDot={{ r: 5 }}
       isAnimationActive={false}
       // A gap is a gap. Bridging null points draws a line through months that
@@ -353,7 +359,7 @@ export function ChartBuilder({
           fontSize={config.labelSize}
           fontWeight={700}
           fontFamily="var(--font-mono)"
-          fill={s.ghost ? PLAN_STROKE : INK}
+          fill={s.ghost ? PLAN_STROKE() : INK()}
           formatter={(v: number) => fmt(v, precision)}
         />
       )}
@@ -366,7 +372,7 @@ export function ChartBuilder({
         className={className}
         style={{
           height: config.height, display: 'grid', placeItems: 'center',
-          color: AXIS, fontSize: 12,
+          color: AXIS(), fontSize: 12,
         }}
       >
         Nothing to chart for this selection.

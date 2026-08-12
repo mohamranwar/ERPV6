@@ -428,13 +428,15 @@ export default function App() {
             )}
           </div>
           {sidebarPinned && (
-            <button
-              onClick={logout}
-              title="Sign out"
-              className="p-1.5 rounded-md border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-all shrink-0 cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={logout}
+                title="Sign out"
+                className="p-1.5 rounded-md border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
         </div>
 

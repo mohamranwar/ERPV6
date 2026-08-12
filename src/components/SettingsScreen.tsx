@@ -501,7 +501,7 @@ export default function SettingsScreen({ previewRows = [] }: SettingsScreenProps
                   <p className="text-[10px] text-slate-400 mt-1">Scorecard and charts open in this unit</p>
                 </div>
               </div>
-              <div className="mt-4 rounded-xl bg-ink-950 p-3" style={{ background: '#06171B' }}>
+              <div className="mt-4 rounded-xl bg-ink-950 p-3" style={{ background: 'var(--color-brand-950)' }}>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sample</p>
                 <p className="font-mono text-xs text-slate-200 mt-1.5">
                   RM-POLY-02&nbsp;&nbsp;&nbsp;{formatQty(74_200_000, draftSettings.formats)} pcs&nbsp;&nbsp;&nbsp;31-Jul-26
