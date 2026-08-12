@@ -8,6 +8,7 @@ import {
 } from '../supabaseClient';
 import { monthLabel } from '../utils/periods';
 import { pcsPerCarton } from '../utils/uom';
+import type { VarianceRow, VarianceTotals } from './rmForecastVariance';
 import { toCsvText, downloadCsv } from '../utils/csv';
 import type {
   Material, Product, ProductCategory, ProductionActual, ProductionPlan,
@@ -317,6 +318,11 @@ export interface WriteSnapshotArgs {
   thresholds: Thresholds;
   userId: string;
   mrpRunId?: string;
+  /** Variance rows at the moment of close. Frozen so re-running MRP cannot change history. */
+  varianceRows?: readonly VarianceRow[];
+  varianceTotals?: VarianceTotals;
+  /** Which MRP run was the variance baseline. May differ from mrpRunId. */
+  varianceBaselineRunId?: string | null;
 }
 
 /**
@@ -328,7 +334,8 @@ export interface WriteSnapshotArgs {
  * still lands and syncs later.
  */
 export async function writeSnapshot(args: WriteSnapshotArgs): Promise<void> {
-  const { scorecard: sc, readiness, thresholds, userId, mrpRunId } = args;
+  const { scorecard: sc, readiness, thresholds, userId, mrpRunId,
+    varianceRows, varianceTotals, varianceBaselineRunId } = args;
 
   const salesPlan = sc.categories.reduce((a, c) => a + c.salesPlanPcs, 0);
   const salesActual = sc.categories.reduce((a, c) => a + c.salesActualPcs, 0);
@@ -387,6 +394,29 @@ export async function writeSnapshot(args: WriteSnapshotArgs): Promise<void> {
     thresholds_applied: thresholds,
     readiness: readiness.map(r => ({ id: r.id, severity: r.severity, title: r.title })),
     mrp_run_id: mrpRunId ?? null,
+
+    // Variance freeze. Stored as JSONB so re-running MRP or editing an old PO
+    // cannot rewrite what was true at the moment of close. A variance report
+    // that silently changes its own history is worse than useless.
+    variance_baseline_value: varianceTotals?.baselineValue ?? 0,
+    variance_actual_value:   varianceTotals?.actualValue   ?? 0,
+    variance_value:          varianceTotals?.varianceValue  ?? 0,
+    variance_pct:            varianceTotals?.variancePct    ?? null,
+    variance_off_plan_count:     varianceTotals?.materialsOffPlan    ?? 0,
+    variance_not_ordered_count:  varianceTotals?.materialsNotOrdered ?? 0,
+    variance_unplanned_count:    varianceTotals?.materialsUnplanned  ?? 0,
+    variance_detail: (varianceRows ?? []).map(r => ({
+      materialId: r.materialId, materialSku: r.materialSku,
+      materialName: r.materialName, supplierId: r.supplierId,
+      baselineQty: r.baselineQty, currentForecastQty: r.currentForecastQty,
+      actualQty: r.actualQty, forecastDriftQty: r.forecastDriftQty,
+      orderVarianceQty: r.orderVarianceQty, orderVariancePct: r.orderVariancePct,
+      baselineValue: r.baselineValue, actualValue: r.actualValue,
+      orderVarianceValue: r.orderVarianceValue,
+      flag: r.flag, band: r.band, matchedPoNumbers: r.matchedPoNumbers,
+    })),
+    variance_baseline_run_id: varianceBaselineRunId ?? null,
+
     row_counts: {},
   };
 

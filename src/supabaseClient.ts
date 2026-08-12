@@ -2335,3 +2335,91 @@ export async function closePlanningPeriod(
   };
   return saveRecord<ClosedPeriod>('closed_periods', newClosed);
 }
+
+// ---------------------------------------------------------------------------
+// Variance reasons (Phase 4)
+// ---------------------------------------------------------------------------
+
+export type VarianceReasonCode =
+  | 'supplier_moq'
+  | 'price_break'
+  | 'late_demand_change'
+  | 'stock_correction'
+  | 'substitution'
+  | 'procurement_deferral'
+  | 'other';
+
+export const VARIANCE_REASON_LABELS: Record<VarianceReasonCode, string> = {
+  supplier_moq:          'Supplier MOQ',
+  price_break:           'Price break / volume discount',
+  late_demand_change:    'Late demand change',
+  stock_correction:      'Stock count correction',
+  substitution:          'Material substitution',
+  procurement_deferral:  'Procurement deferral',
+  other:                 'Other',
+};
+
+export interface VarianceReason {
+  id: string;
+  period: string;
+  material_id: string;
+  recorded_at: string;
+  recorded_by: string | null;
+  reason_code: VarianceReasonCode;
+  notes: string;
+  baseline_qty: number;
+  actual_qty: number;
+  variance_qty: number;
+}
+
+const LOCAL_VARIANCE_REASONS = 'variance_reasons';
+
+export async function fetchVarianceReasons(period: string): Promise<VarianceReason[]> {
+  const local = readLocalTable<VarianceReason>(LOCAL_VARIANCE_REASONS)
+    .filter(r => r.period?.slice(0, 7) === period.slice(0, 7));
+
+  if (!isSupabaseConnected() || !supabase) return local;
+
+  const { data, error } = await supabase
+    .from('variance_reasons')
+    .select('*')
+    .eq('period', period.slice(0, 7) + '-01')
+    .order('recorded_at', { ascending: false });
+
+  if (error) {
+    console.error('fetchVarianceReasons:', error.message);
+    return local;
+  }
+  return (data as VarianceReason[]) ?? local;
+}
+
+export async function saveVarianceReason(
+  reason: Omit<VarianceReason, 'id' | 'recorded_at'>,
+): Promise<VarianceReason> {
+  const newReason: VarianceReason = {
+    ...reason,
+    id: `VR_${Date.now()}_${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+    recorded_at: new Date().toISOString(),
+    period: reason.period.slice(0, 7) + '-01',
+  };
+
+  const existing = readLocalTable<VarianceReason>(LOCAL_VARIANCE_REASONS);
+  writeLocalTable(LOCAL_VARIANCE_REASONS, [...existing, newReason]);
+
+  if (isSupabaseConnected() && supabase) {
+    const { error } = await supabase.from('variance_reasons').insert(newReason);
+    if (error) throw new Error(`Reason saved locally but failed to sync: ${error.message}`);
+  }
+
+  return newReason;
+}
+
+export async function deleteVarianceReason(id: string): Promise<void> {
+  const existing = readLocalTable<VarianceReason>(LOCAL_VARIANCE_REASONS);
+  writeLocalTable(LOCAL_VARIANCE_REASONS, existing.filter(r => r.id !== id));
+
+  if (isSupabaseConnected() && supabase) {
+    const { error } = await supabase.from('variance_reasons').delete().eq('id', id);
+    if (error) throw new Error(`Failed to delete reason: ${error.message}`);
+  }
+}

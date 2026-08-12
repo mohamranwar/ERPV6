@@ -23,6 +23,11 @@ import {
   resolveBaselineRunId, resolveCurrentRunId, resultsForRun,
   type VarianceRow, type VarianceBand,
 } from '../services/rmForecastVariance';
+import {
+  fetchVarianceReasons, saveVarianceReason, deleteVarianceReason,
+  VARIANCE_REASON_LABELS,
+  type VarianceReason, type VarianceReasonCode,
+} from '../supabaseClient';
 
 const NEVER_CANCELLED = { cancelled: false };
 
@@ -96,6 +101,13 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [reasons, setReasons] = useState<VarianceReason[]>([]);
+  const [reasonForm, setReasonForm] = useState<{
+    materialId: string;
+    code: VarianceReasonCode;
+    notes: string;
+    saving: boolean;
+  } | null>(null);
 
   const { isFirstLoad, markLoaded } = useFirstLoad('rm_forecast_variance');
 
@@ -103,12 +115,13 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const [mats, sups, pos, results, closed] = await Promise.all([
+      const [mats, sups, pos, results, closed, reasonList] = await Promise.all([
         fetchTableData<Material>('materials'),
         fetchTableData<Supplier>('suppliers'),
         fetchTableData<PurchaseOrder>('purchase_orders'),
         fetchTableData<MRPResult>('mrp_results'),
         fetchClosedPeriods(),
+        fetchVarianceReasons(period),
       ]);
       if (signal.cancelled) return;
       setMaterials(mats);
@@ -116,6 +129,7 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
       setPurchaseOrders(pos);
       setMrpResults(results);
       setClosedPeriods(closed);
+      setReasons(reasonList);
     } catch (e: any) {
       if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
@@ -188,6 +202,38 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
   }, [mrpResults, purchaseOrders]);
 
   // ── Toggle drill-down ────────────────────────────────────────────────────
+
+  async function handleSaveReason(row: VarianceRow) {
+    if (!reasonForm || reasonForm.saving || !reasonForm.notes.trim()) return;
+    setReasonForm(f => f ? { ...f, saving: true } : f);
+    try {
+      const saved = await saveVarianceReason({
+        period,
+        material_id: row.materialId,
+        recorded_by: null,
+        reason_code: reasonForm.code,
+        notes: reasonForm.notes.trim(),
+        baseline_qty: row.baselineQty,
+        actual_qty: row.actualQty,
+        variance_qty: row.orderVarianceQty,
+      });
+      setReasons(prev => [saved, ...prev]);
+      setReasonForm(null);
+    } catch (e: any) {
+      alert('Could not save reason: ' + e.message);
+      setReasonForm(f => f ? { ...f, saving: false } : f);
+    }
+  }
+
+  async function handleDeleteReason(id: string) {
+    if (!confirm('Delete this reason?')) return;
+    try {
+      await deleteVarianceReason(id);
+      setReasons(prev => prev.filter(r => r.id !== id));
+    } catch (e: any) {
+      alert('Could not delete: ' + e.message);
+    }
+  }
 
   function toggleRow(id: string) {
     setExpandedRows(prev => {
@@ -391,30 +437,15 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
                           </td>
                         </tr>
 
-                        {/* PO drill-down */}
+                        {/* Drill-down: POs + variance reasons */}
                         {expandedRows.has(row.materialId) && (
                           <tr className="bg-slate-50/80">
                             <td></td>
                             <td colSpan={7} className="px-4 py-3">
-                              <div className="space-y-2">
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                  Purchase orders raised in {formatPlanningPeriod(period)}
-                                </p>
-                                {row.matchedPoNumbers.length === 0 ? (
-                                  <p className="text-xs text-red-600 font-medium">
-                                    No POs found for this period.
-                                    {row.flag === 'not_ordered' && ' This is why the full planned quantity shows as a gap.'}
-                                  </p>
-                                ) : (
-                                  <div className="flex flex-wrap gap-2">
-                                    {row.matchedPoNumbers.map(n => (
-                                      <span key={n} className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-mono font-medium text-slate-700">
-                                        {n}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                                <div className="grid grid-cols-3 gap-4 pt-1">
+                              <div className="space-y-4">
+
+                                {/* Numbers */}
+                                <div className="grid grid-cols-3 gap-4">
                                   <div>
                                     <p className="text-[10px] text-slate-400">Baseline (frozen)</p>
                                     <p className="text-xs font-bold text-slate-900">{fmt(row.baselineQty)} units · {fmtEgp(row.baselineValue)}</p>
@@ -435,6 +466,113 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
                                     <p className="text-xs font-bold text-slate-900">{fmt(row.actualQty)} units · {fmtEgp(row.actualValue)}</p>
                                   </div>
                                 </div>
+
+                                {/* PO numbers */}
+                                <div>
+                                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                                    Purchase orders — {formatPlanningPeriod(period)}
+                                  </p>
+                                  {row.matchedPoNumbers.length === 0 ? (
+                                    <p className="text-xs text-red-600 font-medium">
+                                      No POs found for this period.
+                                      {row.flag === 'not_ordered' && ' This is why the full planned quantity shows as a gap.'}
+                                    </p>
+                                  ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                      {row.matchedPoNumbers.map(n => (
+                                        <span key={n} className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-mono font-medium text-slate-700">
+                                          {n}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Variance reasons */}
+                                <div className="border-t border-slate-200 pt-3 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                      Variance reasons
+                                    </p>
+                                    {reasonForm?.materialId !== row.materialId && (
+                                      <button
+                                        onClick={() => setReasonForm({
+                                          materialId: row.materialId,
+                                          code: 'other',
+                                          notes: '',
+                                          saving: false,
+                                        })}
+                                        className="text-[10px] font-bold text-brand-600 hover:text-brand-700 hover:underline"
+                                      >
+                                        + Add reason
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  {/* Existing reasons */}
+                                  {reasons.filter(r => r.material_id === row.materialId).map(r => (
+                                    <div key={r.id} className="flex items-start gap-2 bg-white rounded-lg border border-slate-200 px-3 py-2">
+                                      <div className="flex-1 min-w-0">
+                                        <span className="text-[10px] font-bold text-brand-700 bg-brand-50 border border-brand-200 px-1.5 py-0.5 rounded mr-2">
+                                          {VARIANCE_REASON_LABELS[r.reason_code]}
+                                        </span>
+                                        <span className="text-xs text-slate-700">{r.notes}</span>
+                                      </div>
+                                      <button
+                                        onClick={() => handleDeleteReason(r.id)}
+                                        className="text-[10px] text-slate-400 hover:text-red-600 shrink-0"
+                                        aria-label="Delete reason"
+                                      >✕</button>
+                                    </div>
+                                  ))}
+
+                                  {reasons.filter(r => r.material_id === row.materialId).length === 0
+                                    && reasonForm?.materialId !== row.materialId && (
+                                    <p className="text-[10px] text-slate-400 italic">
+                                      No reasons recorded yet. Add one so this variance is explained in the month-close record.
+                                    </p>
+                                  )}
+
+                                  {/* Add reason form */}
+                                  {reasonForm?.materialId === row.materialId && (
+                                    <div className="bg-white rounded-lg border border-brand-200 p-3 space-y-2">
+                                      <div className="flex gap-2">
+                                        <select
+                                          value={reasonForm.code}
+                                          onChange={e => setReasonForm(f => f ? { ...f, code: e.target.value as VarianceReasonCode } : f)}
+                                          className="h-7 rounded-lg border border-slate-300 bg-white px-2 text-[11px] flex-1 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                        >
+                                          {(Object.entries(VARIANCE_REASON_LABELS) as [VarianceReasonCode, string][]).map(([code, label]) => (
+                                            <option key={code} value={code}>{label}</option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                      <textarea
+                                        rows={2}
+                                        value={reasonForm.notes}
+                                        onChange={e => setReasonForm(f => f ? { ...f, notes: e.target.value } : f)}
+                                        placeholder="Explain the variance — supplier, quantity impact, action for next month..."
+                                        className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                      />
+                                      <div className="flex gap-2 justify-end">
+                                        <button
+                                          onClick={() => setReasonForm(null)}
+                                          className="h-7 px-3 rounded-lg border border-slate-300 text-[10px] font-bold text-slate-600 hover:bg-slate-50"
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          onClick={() => handleSaveReason(row)}
+                                          disabled={reasonForm.saving || !reasonForm.notes.trim()}
+                                          className="h-7 px-3 rounded-lg bg-brand-600 text-[10px] font-bold text-white hover:bg-brand-700 disabled:opacity-50"
+                                        >
+                                          {reasonForm.saving ? 'Saving…' : 'Save reason'}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
                               </div>
                             </td>
                           </tr>
