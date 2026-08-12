@@ -4,122 +4,78 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import {
-  AlertCircle, AlertTriangle, CheckCircle2, ChevronDown,
-  ChevronRight, HelpCircle, TrendingDown, TrendingUp,
-  DollarSign, ShoppingBag, BarChart2, PackageX,
-} from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react';
 
 import {
-  fetchTableData, fetchClosedPeriods, formatPlanningPeriod, getPlanningPeriod,
-} from '../supabaseClient';
-import type { ClosedPeriod, Material, MRPResult, PurchaseOrder, Supplier } from '../types';
-import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
-import { useFirstLoad } from '../hooks/useFirstLoad';
-import DataStateWrapper from './DataStateWrapper';
-import { KpiCard } from './ui';
-import SortableHeader from './SortableHeader';
-import { useTableSort } from '../hooks/useTableSort';
-import ContentHeader from './ContentHeader';
-import ChartCard from './charts/ChartCard';
-import {
-  buildVarianceRows, summariseVariance,
-  resolveBaselineRunId, resolveCurrentRunId, resultsForRun,
-  type VarianceRow, type VarianceBand,
-} from '../services/rmForecastVariance';
-import {
+  fetchTableData, fetchClosedPeriods, getPlanningPeriod,
   fetchVarianceReasons, saveVarianceReason, deleteVarianceReason,
   VARIANCE_REASON_LABELS,
   type VarianceReason, type VarianceReasonCode,
 } from '../supabaseClient';
+import type { ClosedPeriod, Material, MRPResult, PurchaseOrder, Supplier } from '../types';
+import { useAsyncLoad, type LoadSignal } from '../hooks/useAsyncLoad';
+import { useFirstLoad } from '../hooks/useFirstLoad';
+import { useTableFilters } from '../hooks/useTableFilters';
 import { useAppSettings } from '../hooks/useAppSettings';
+import DataStateWrapper from './DataStateWrapper';
+import ContentHeader from './ContentHeader';
+import ScrollableTable from './ScrollableTable';
+import SearchBar from './SearchBar';
+import {
+  buildGrid, resolveGridRunId,
+  type GridRow, type ProjectionMode,
+} from '../services/rmForecastGrid';
 
 const NEVER_CANCELLED = { cancelled: false };
 
 interface Props {
+  searchQuery?: string;
+  setSearchQuery?: (q: string) => void;
   refreshKey?: number;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+const nf = (n: number) => Math.round(n).toLocaleString('en-US');
 
-const fmt = (n: number, dp = 0) =>
-  n.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
-
-const fmtEgp = (n: number) =>
-  `EGP ${Math.abs(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-
-const BAND_META: Record<VarianceBand, { label: string; cls: string; icon: React.ReactNode }> = {
-  on_plan: {
-    label: 'On plan',
-    cls: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-    icon: <CheckCircle2 className="w-3 h-3" />,
-  },
-  watch: {
-    label: 'Watch',
-    cls: 'text-amber-700 bg-amber-50 border-amber-200',
-    icon: <AlertTriangle className="w-3 h-3" />,
-  },
-  off_plan: {
-    label: 'Off plan',
-    cls: 'text-red-700 bg-red-50 border-red-200',
-    icon: <AlertCircle className="w-3 h-3" />,
-  },
-  none: {
-    label: '—',
-    cls: 'text-slate-400 bg-slate-50 border-slate-200',
-    icon: <HelpCircle className="w-3 h-3" />,
-  },
-};
-
-function BandBadge({ band }: { band: VarianceBand }) {
-  const m = BAND_META[band];
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold ${m.cls}`}>
-      {m.icon}{m.label}
-    </span>
-  );
+/**
+ * Achievement banding. Matches PlanVsActualScreen exactly rather than
+ * inventing a second scale -- a planner reading both screens in one sitting
+ * should not have to remember that amber means something different here.
+ */
+function pctClass(pct: number | null, okAt: number, watchAt: number): string {
+  if (pct === null) return 'text-slate-500 bg-slate-100 border-slate-200';
+  if (pct >= okAt) return 'text-emerald-700 bg-emerald-100 border-emerald-200';
+  if (pct >= watchAt) return 'text-amber-700 bg-amber-100 border-amber-200';
+  return 'text-red-700 bg-red-100 border-red-200';
 }
 
-function DeltaBadge({ qty, pct }: { qty: number; pct: number | null }) {
-  if (qty === 0) return <span className="text-slate-400 text-xs">—</span>;
-  const up = qty > 0;
-  const cls = up ? 'text-red-600' : 'text-emerald-700';
-  const Icon = up ? TrendingUp : TrendingDown;
-  return (
-    <span className={`inline-flex items-center gap-1 font-mono text-xs ${cls}`}>
-      <Icon className="w-3 h-3" />
-      {up ? '+' : ''}{fmt(qty)}
-      {pct !== null && ` (${up ? '+' : ''}${fmt(pct, 1)}%)`}
-    </span>
-  );
-}
-
-// ── Main screen ────────────────────────────────────────────────────────────
-
-export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
-  const [period, setPeriod] = useState(() => getPlanningPeriod());
+export default function RMForecastVarianceScreen({
+  searchQuery = '', setSearchQuery, refreshKey = 0,
+}: Props) {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [mrpResults, setMrpResults] = useState<MRPResult[]>([]);
   const [closedPeriods, setClosedPeriods] = useState<ClosedPeriod[]>([]);
+  const [reasons, setReasons] = useState<VarianceReason[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [reasons, setReasons] = useState<VarianceReason[]>([]);
+
+  const [horizon, setHorizon] = useState(6);
+  const [projection, setProjection] = useState<ProjectionMode>('band');
+  const [seed, setSeed] = useState(1);
+  const [supplierFilter, setSupplierFilter] = useState('all');
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [reasonForm, setReasonForm] = useState<{
-    materialId: string;
-    code: VarianceReasonCode;
-    notes: string;
-    saving: boolean;
+    key: string; materialId: string; period: string;
+    code: VarianceReasonCode; notes: string; saving: boolean;
   } | null>(null);
 
   const { isFirstLoad, markLoaded } = useFirstLoad('rm_forecast_variance');
   const { settings } = useAppSettings();
-  const tolerance = {
-    onPlanPct: settings.thresholds.variance_on_plan_pct,
-    watchPct: settings.thresholds.variance_watch_pct,
-  };
+  const okAt = settings.thresholds.attainment_ok;
+  const watchAt = settings.thresholds.attainment_watch;
+
+  const startPeriod = getPlanningPeriod();
 
   async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
@@ -131,15 +87,11 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
         fetchTableData<PurchaseOrder>('purchase_orders'),
         fetchTableData<MRPResult>('mrp_results'),
         fetchClosedPeriods(),
-        fetchVarianceReasons(period),
+        fetchVarianceReasons(startPeriod),
       ]);
       if (signal.cancelled) return;
-      setMaterials(mats);
-      setSuppliers(sups);
-      setPurchaseOrders(pos);
-      setMrpResults(results);
-      setClosedPeriods(closed);
-      setReasons(reasonList);
+      setMaterials(mats); setSuppliers(sups); setPurchaseOrders(pos);
+      setMrpResults(results); setClosedPeriods(closed); setReasons(reasonList);
     } catch (e: any) {
       if (signal.cancelled) return;
       setError(e instanceof Error ? e.message : String(e));
@@ -150,143 +102,94 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
 
   useAsyncLoad((signal) => loadData(signal), [refreshKey]);
 
-  // Reload reasons whenever the period selector changes -- they are period-
-  // specific and the main load only fires on refreshKey.
-  useAsyncLoad(async (signal) => {
-    const list = await fetchVarianceReasons(period);
-    if (!signal.cancelled) setReasons(list);
-  }, [period]);
-
-  // ── Variance computation ─────────────────────────────────────────────────
-
-  const closedForPeriod = useMemo(
-    () => closedPeriods.find(cp => cp.period?.slice(0, 7) === period.slice(0, 7)),
-    [closedPeriods, period],
+  // The forecast comes from ONE frozen run, never a live recalculation --
+  // otherwise last month's figures change whenever someone edits an old plan.
+  const runId = useMemo(
+    () => resolveGridRunId(mrpResults, startPeriod, closedPeriods),
+    [mrpResults, startPeriod, closedPeriods],
   );
 
-  const baselineRunId = useMemo(
-    () => resolveBaselineRunId(mrpResults, period, closedForPeriod?.run_id),
-    [mrpResults, period, closedForPeriod],
+  const grid = useMemo(() => buildGrid({
+    mrpResults, purchaseOrders, materials, suppliers,
+    startPeriod, horizonMonths: horizon, projection, runId, seed,
+  }), [mrpResults, purchaseOrders, materials, suppliers,
+       startPeriod, horizon, projection, runId, seed]);
+
+  const supplierFiltered = useMemo(
+    () => supplierFilter === 'all'
+      ? grid.rows
+      : grid.rows.filter(r => r.supplierId === supplierFilter),
+    [grid.rows, supplierFilter],
   );
 
-  const currentRunId = useMemo(
-    () => resolveCurrentRunId(mrpResults, period),
-    [mrpResults, period],
+  const { filtered: rows } = useTableFilters<GridRow>(
+    supplierFiltered, ['materialName', 'materialSku', 'supplierName'], {}, searchQuery,
   );
 
-  const baselineResults = useMemo(
-    () => resultsForRun(mrpResults, baselineRunId),
-    [mrpResults, baselineRunId],
-  );
+  const supplierOptions = useMemo(() => {
+    const ids = new Set(grid.rows.map(r => r.supplierId).filter(Boolean));
+    return suppliers.filter(s => ids.has(s.id));
+  }, [grid.rows, suppliers]);
 
-  const currentResults = useMemo(
-    () => resultsForRun(mrpResults, currentRunId),
-    [mrpResults, currentRunId],
-  );
-
-  const rows = useMemo(
-    () => buildVarianceRows({
-      baselineResults, currentResults, purchaseOrders, materials, suppliers, period, tolerance,
-    }),
-    [baselineResults, currentResults, purchaseOrders, materials, suppliers, period],
-  );
-
-  const totals = useMemo(() => summariseVariance(rows), [rows]);
-
-  // ── Chart cube (top 10 by absolute variance value) ──────────────────────
-
-  const chartCube = useMemo(() => {
-    const top = rows.slice(0, 10);
-    return {
-      periods: [formatPlanningPeriod(period)],
-      seriesNames: top.map(r => r.materialSku || r.materialName),
-      plan: top.map(r => [r.baselineValue]),
-      actual: top.map(r => [r.actualValue]),
-    };
-  }, [rows, period]);
-
-  const { sortedItems: sortedRows, sortConfig, handleSort } = useTableSort(
-    rows, 'orderVarianceValue', 'desc'
-  );
-
-  // ── Available periods (months represented in MRP results or POs) ─────────
-
-  const availablePeriods = useMemo(() => {
-    const seen = new Set<string>();
-    for (const r of mrpResults) {
-      if (r.week_start_date) seen.add(r.week_start_date.slice(0, 7));
-    }
-    for (const po of purchaseOrders) {
-      if (po.po_date) seen.add(po.po_date.slice(0, 7));
-    }
-    return Array.from(seen).sort().reverse();
-  }, [mrpResults, purchaseOrders]);
-
-  // ── Toggle drill-down ────────────────────────────────────────────────────
-
-  async function handleSaveReason(row: VarianceRow) {
-    if (!reasonForm || reasonForm.saving || !reasonForm.notes.trim()) return;
-    setReasonForm(f => f ? { ...f, saving: true } : f);
-    try {
-      const saved = await saveVarianceReason({
-        period,
-        material_id: row.materialId,
-        recorded_by: null,
-        reason_code: reasonForm.code,
-        notes: reasonForm.notes.trim(),
-        baseline_qty: row.baselineQty,
-        actual_qty: row.actualQty,
-        variance_qty: row.orderVarianceQty,
-      });
-      setReasons(prev => [saved, ...prev]);
-      setReasonForm(null);
-    } catch (e: any) {
-      alert('Could not save reason: ' + e.message);
-      setReasonForm(f => f ? { ...f, saving: false } : f);
-    }
-  }
-
-  async function handleDeleteReason(id: string) {
-    if (!confirm('Delete this reason?')) return;
-    try {
-      await deleteVarianceReason(id);
-      setReasons(prev => prev.filter(r => r.id !== id));
-    } catch (e: any) {
-      alert('Could not delete: ' + e.message);
-    }
-  }
-
-  function toggleRow(id: string) {
-    setExpandedRows(prev => {
+  function toggle(id: string) {
+    setExpanded(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   }
 
-  const hasNoBaseline = baselineRunId === null;
+  async function saveReason(row: GridRow) {
+    if (!reasonForm || reasonForm.saving || !reasonForm.notes.trim()) return;
+    setReasonForm(f => f ? { ...f, saving: true } : f);
+    try {
+      const cell = row.cells.find(c => c.periodKey === reasonForm.period);
+      const saved = await saveVarianceReason({
+        period: reasonForm.period,
+        material_id: row.materialId,
+        recorded_by: null,
+        reason_code: reasonForm.code,
+        notes: reasonForm.notes.trim(),
+        baseline_qty: cell?.forecastQty ?? 0,
+        actual_qty: cell?.actualQty ?? 0,
+        variance_qty: (cell?.actualQty ?? 0) - (cell?.forecastQty ?? 0),
+      });
+      setReasons(prev => [saved, ...prev]);
+      setReasonForm(null);
+    } catch (e: any) {
+      setError(`Could not save reason: ${e.message}`);
+      setReasonForm(f => f ? { ...f, saving: false } : f);
+    }
+  }
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  async function removeReason(id: string) {
+    try {
+      await deleteVarianceReason(id);
+      setReasons(prev => prev.filter(r => r.id !== id));
+    } catch (e: any) {
+      setError(`Could not delete reason: ${e.message}`);
+    }
+  }
+
+  const hasPlan = grid.periods.some(p => !p.projected);
+
+  const segBtn = (active: boolean) =>
+    `h-6 px-2.5 rounded-md text-[10px] font-bold transition ${
+      active ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`;
 
   return (
     <div className="flex flex-col min-h-full bg-surface-1">
       <ContentHeader
         title="RM Forecast vs Actual PO"
-        subtitle="Compare what MRP said to order against what Procurement actually raised"
+        subtitle="What MRP planned to order against what Procurement actually raised"
         actions={
-          <select
-            value={period}
-            onChange={e => setPeriod(e.target.value)}
-            className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
-            aria-label="Reporting period"
-          >
-            {availablePeriods.length === 0 && (
-              <option value={period}>{formatPlanningPeriod(period)}</option>
-            )}
-            {availablePeriods.map(p => (
-              <option key={p} value={p}>{formatPlanningPeriod(p)}</option>
-            ))}
-          </select>
+          setSearchQuery ? (
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search material or supplier…"
+            />
+          ) : undefined
         }
       />
 
@@ -297,328 +200,355 @@ export default function RMForecastVarianceScreen({ refreshKey = 0 }: Props) {
         onRetry={() => loadData()}
         emptyMessage=""
       >
-        <div className="p-4 lg:p-6 space-y-6">
+        <div className="p-4 lg:p-6 space-y-4">
 
-          {/* Baseline notice */}
-          {hasNoBaseline ? (
+          {/* Controls */}
+          <div className="bg-white rounded-xl border border-slate-200 p-3 flex items-end gap-4 flex-wrap">
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Horizon</p>
+              <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
+                {[4, 6, 12].map(h => (
+                  <button key={h} onClick={() => setHorizon(h)}
+                    aria-pressed={horizon === h} className={segBtn(horizon === h)}>
+                    {h} months
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                Months beyond MRP plan
+              </p>
+              <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
+                {([['band', 'Average ±15%'], ['varied', 'Varied per month'], ['off', 'Hide']] as Array<[ProjectionMode, string]>)
+                  .map(([v, t]) => (
+                    <button key={v} onClick={() => setProjection(v)}
+                      aria-pressed={projection === v} className={segBtn(projection === v)}>
+                      {t}
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Supplier</p>
+              <select
+                value={supplierFilter}
+                onChange={e => setSupplierFilter(e.target.value)}
+                className="h-7 rounded-lg border border-slate-300 bg-white px-2 text-[11px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="all">All suppliers</option>
+                {supplierOptions.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+
+            {projection === 'varied' && (
+              <button
+                onClick={() => setSeed(s => s + 1)}
+                className="h-7 px-3 rounded-lg border border-slate-300 bg-white text-[10px] font-bold text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1.5"
+                title="Projected figures are stable across page loads; only this button changes them."
+              >
+                <RefreshCw className="w-3 h-3" /> New scenario
+              </button>
+            )}
+
+            <div className="ms-auto text-[10px] text-slate-400">
+              {rows.length} materials
+              {runId && <> · run <span className="font-mono text-slate-600">{runId}</span></>}
+            </div>
+          </div>
+
+          {!hasPlan && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <p>
-                No MRP run found for <strong>{formatPlanningPeriod(period)}</strong>.
-                Run MRP for this period first — the baseline is pinned to the earliest
-                run in the month so it cannot drift as new runs are added.
+                No MRP run covers this period yet. Run MRP first — every forecast figure
+                on this screen comes from planned order releases.
               </p>
             </div>
-          ) : (
-            <div className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-500 flex items-center gap-4">
-              <span>
-                <span className="font-semibold text-slate-700">Baseline run:</span>{' '}
-                {baselineRunId}
-                {closedForPeriod ? ' (from month close)' : ' (earliest run in month)'}
-              </span>
-              {currentRunId !== baselineRunId && (
-                <span>
-                  <span className="font-semibold text-slate-700">Current run:</span>{' '}
-                  {currentRunId}
-                </span>
-              )}
-            </div>
           )}
 
-          {/* KPI cards — same KpiCard component as the Dashboard */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <KpiCard
-              label="Baseline value"
-              value={fmtEgp(totals.baselineValue)}
-              sub="What MRP planned to order"
-              icon={<DollarSign className="w-4 h-4" />}
-              intent="default"
-            />
-            <KpiCard
-              label="Ordered value"
-              value={fmtEgp(totals.actualValue)}
-              sub="What Procurement actually raised"
-              icon={<ShoppingBag className="w-4 h-4" />}
-              intent={totals.actualValue === 0 ? 'warning' : 'default'}
-            />
-            <KpiCard
-              label="Variance"
-              value={(totals.varianceValue > 0 ? '+' : '') + fmtEgp(totals.varianceValue)}
-              sub={totals.variancePct !== null
-                ? `${totals.variancePct > 0 ? '+' : ''}${fmt(totals.variancePct, 1)}% vs baseline`
-                : 'No baseline'}
-              icon={<BarChart2 className="w-4 h-4" />}
-              intent={totals.varianceValue === 0 ? 'success'
-                : Math.abs(totals.variancePct ?? 999) <= tolerance.onPlanPct ? 'success'
-                : Math.abs(totals.variancePct ?? 999) <= tolerance.watchPct ? 'warning'
-                : 'danger'}
-              trend={totals.variancePct !== null ? -totals.variancePct : undefined}
-              trendLabel={totals.variancePct !== null ? `${Math.abs(totals.variancePct).toFixed(1)}%` : undefined}
-            />
-            <KpiCard
-              label="Materials off plan"
-              value={totals.materialsOffPlan}
-              sub={`${totals.materialsNotOrdered} not ordered · ${totals.materialsUnplanned} unplanned`}
-              icon={<PackageX className="w-4 h-4" />}
-              intent={totals.materialsOffPlan === 0 ? 'success' : 'danger'}
-              badge={totals.materialsNotOrdered > 0 ? {
-                label: `${totals.materialsNotOrdered} not ordered`,
-                intent: 'danger',
-              } : totals.materialsUnplanned > 0 ? {
-                label: `${totals.materialsUnplanned} unplanned`,
-                intent: 'warning',
-              } : undefined}
-            />
-          </div>
-
-          {/* Chart */}
-          {rows.length > 0 && (
-            <ChartCard
-              chartId="rm-variance-by-material"
-              title="Variance by material — top 10"
-              subtitle={`Baseline (ghost) vs ordered (solid) · ${formatPlanningPeriod(period)} · EGP value`}
-              periods={chartCube.periods}
-              seriesNames={chartCube.seriesNames}
-              plan={chartCube.plan}
-              actual={chartCube.actual}
-              unit="EGP"
-              precision={0}
-              fixedAxis="series"
-              seriesLabel="Materials"
-            />
-          )}
-
-          {/* Table */}
+          {/* Grid */}
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-xs font-bold text-slate-900">Material detail</h3>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  Sorted by absolute variance value · click a row to see matched POs
-                </p>
-              </div>
-              <span className="text-xs text-slate-500">{rows.length} materials</span>
-            </div>
-
-            {rows.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-400">
-                No variance data for {formatPlanningPeriod(period)}.
-                {hasNoBaseline && ' Run MRP first to establish a baseline.'}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      <th className="text-left px-4 py-2.5 w-6"></th>
-                      <SortableHeader label="Material" sortKey="materialName" sortConfig={sortConfig} onSort={handleSort} align="left" className="px-4 py-2.5" />
-                      <SortableHeader label="Baseline qty" sortKey="baselineQty" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
-                      <SortableHeader label="Forecast drift" sortKey="forecastDriftQty" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
-                      <SortableHeader label="Ordered qty" sortKey="actualQty" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
-                      <SortableHeader label="Variance %" sortKey="orderVariancePct" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
-                      <SortableHeader label="Variance value" sortKey="orderVarianceValue" sortConfig={sortConfig} onSort={handleSort} align="right" className="px-4 py-2.5" />
-                      <th className="text-center px-4 py-2.5">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {sortedRows.map(row => (
-                      <React.Fragment key={row.materialId}>
-                        <tr
-                          className={`hover:bg-slate-50 cursor-pointer transition-colors ${
-                            row.flag === 'not_ordered' ? 'bg-red-50/40' :
-                            row.flag === 'unplanned' ? 'bg-amber-50/40' : ''
-                          }`}
-                          onClick={() => toggleRow(row.materialId)}
-                        >
-                          <td className="px-4 py-2.5 text-slate-400">
-                            {expandedRows.has(row.materialId)
-                              ? <ChevronDown className="w-3.5 h-3.5" />
-                              : <ChevronRight className="w-3.5 h-3.5" />}
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <div className="font-medium text-slate-900">{row.materialSku}</div>
-                            <div className="text-slate-500 text-[10px]">{row.materialName}</div>
-                          </td>
-                          <td className="px-4 py-2.5 text-right font-mono text-slate-700">
-                            {fmt(row.baselineQty)}
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <DeltaBadge qty={row.forecastDriftQty} pct={null} />
-                          </td>
-                          <td className={`px-4 py-2.5 text-right font-mono ${
-                            row.flag === 'not_ordered' ? 'text-red-600 font-bold' : 'text-slate-700'
-                          }`}>
-                            {row.flag === 'not_ordered' ? '—' : fmt(row.actualQty)}
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <DeltaBadge qty={row.orderVarianceQty} pct={row.orderVariancePct} />
-                          </td>
-                          <td className={`px-4 py-2.5 text-right font-mono font-medium ${
-                            row.orderVarianceValue > 0 ? 'text-red-600' :
-                            row.orderVarianceValue < 0 ? 'text-emerald-700' : 'text-slate-400'
-                          }`}>
-                            {row.orderVarianceValue === 0 ? '—' :
-                              `${row.orderVarianceValue > 0 ? '+' : ''}${fmtEgp(row.orderVarianceValue)}`}
-                          </td>
-                          <td className="px-4 py-2.5 text-center">
-                            <BandBadge band={row.band} />
-                          </td>
-                        </tr>
-
-                        {/* Drill-down: POs + variance reasons */}
-                        {expandedRows.has(row.materialId) && (
-                          <tr className="bg-slate-50/80">
-                            <td></td>
-                            <td colSpan={7} className="px-4 py-3">
-                              <div className="space-y-4">
-
-                                {/* Numbers */}
-                                <div className="grid grid-cols-3 gap-4">
-                                  <div>
-                                    <p className="text-[10px] text-slate-400">Baseline (frozen)</p>
-                                    <p className="text-xs font-bold text-slate-900">{fmt(row.baselineQty)} units · {fmtEgp(row.baselineValue)}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] text-slate-400">Current forecast</p>
-                                    <p className="text-xs font-bold text-slate-900">
-                                      {fmt(row.currentForecastQty)} units
-                                      {row.forecastDriftQty !== 0 && (
-                                        <span className={`ml-1 ${row.forecastDriftQty > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                                          ({row.forecastDriftQty > 0 ? '+' : ''}{fmt(row.forecastDriftQty)})
-                                        </span>
-                                      )}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] text-slate-400">Ordered</p>
-                                    <p className="text-xs font-bold text-slate-900">{fmt(row.actualQty)} units · {fmtEgp(row.actualValue)}</p>
-                                  </div>
-                                </div>
-
-                                {/* PO numbers */}
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                                    Purchase orders — {formatPlanningPeriod(period)}
-                                  </p>
-                                  {row.matchedPoNumbers.length === 0 ? (
-                                    <p className="text-xs text-red-600 font-medium">
-                                      No POs found for this period.
-                                      {row.flag === 'not_ordered' && ' This is why the full planned quantity shows as a gap.'}
-                                    </p>
-                                  ) : (
-                                    <div className="flex flex-wrap gap-2">
-                                      {row.matchedPoNumbers.map(n => (
-                                        <span key={n} className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-mono font-medium text-slate-700">
-                                          {n}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Variance reasons */}
-                                <div className="border-t border-slate-200 pt-3 space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                      Variance reasons
-                                    </p>
-                                    {reasonForm?.materialId !== row.materialId && (
-                                      <button
-                                        onClick={() => setReasonForm({
-                                          materialId: row.materialId,
-                                          code: 'other',
-                                          notes: '',
-                                          saving: false,
-                                        })}
-                                        className="text-[10px] font-bold text-brand-600 hover:text-brand-700 hover:underline"
-                                      >
-                                        + Add reason
-                                      </button>
-                                    )}
-                                  </div>
-
-                                  {/* Existing reasons */}
-                                  {reasons.filter(r => r.material_id === row.materialId).map(r => (
-                                    <div key={r.id} className="flex items-start gap-2 bg-white rounded-lg border border-slate-200 px-3 py-2">
-                                      <div className="flex-1 min-w-0">
-                                        <span className="text-[10px] font-bold text-brand-700 bg-brand-50 border border-brand-200 px-1.5 py-0.5 rounded mr-2">
-                                          {VARIANCE_REASON_LABELS[r.reason_code]}
-                                        </span>
-                                        <span className="text-xs text-slate-700">{r.notes}</span>
-                                      </div>
-                                      <button
-                                        onClick={() => handleDeleteReason(r.id)}
-                                        className="text-[10px] text-slate-400 hover:text-red-600 shrink-0"
-                                        aria-label="Delete reason"
-                                      >✕</button>
-                                    </div>
-                                  ))}
-
-                                  {reasons.filter(r => r.material_id === row.materialId).length === 0
-                                    && reasonForm?.materialId !== row.materialId && (
-                                    <p className="text-[10px] text-slate-400 italic">
-                                      No reasons recorded yet. Add one so this variance is explained in the month-close record.
-                                    </p>
-                                  )}
-
-                                  {/* Add reason form */}
-                                  {reasonForm?.materialId === row.materialId && (
-                                    <div className="bg-white rounded-lg border border-brand-200 p-3 space-y-2">
-                                      <div className="flex gap-2">
-                                        <select
-                                          value={reasonForm.code}
-                                          onChange={e => setReasonForm(f => f ? { ...f, code: e.target.value as VarianceReasonCode } : f)}
-                                          className="h-7 rounded-lg border border-slate-300 bg-white px-2 text-[11px] flex-1 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                                        >
-                                          {(Object.entries(VARIANCE_REASON_LABELS) as [VarianceReasonCode, string][]).map(([code, label]) => (
-                                            <option key={code} value={code}>{label}</option>
-                                          ))}
-                                        </select>
-                                      </div>
-                                      <textarea
-                                        rows={2}
-                                        value={reasonForm.notes}
-                                        onChange={e => setReasonForm(f => f ? { ...f, notes: e.target.value } : f)}
-                                        placeholder="Explain the variance — supplier, quantity impact, action for next month..."
-                                        className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-brand-500"
-                                      />
-                                      <div className="flex gap-2 justify-end">
-                                        <button
-                                          onClick={() => setReasonForm(null)}
-                                          className="h-7 px-3 rounded-lg border border-slate-300 text-[10px] font-bold text-slate-600 hover:bg-slate-50"
-                                        >
-                                          Cancel
-                                        </button>
-                                        <button
-                                          onClick={() => handleSaveReason(row)}
-                                          disabled={reasonForm.saving || !reasonForm.notes.trim()}
-                                          className="h-7 px-3 rounded-lg bg-brand-600 text-[10px] font-bold text-white hover:bg-brand-700 disabled:opacity-50"
-                                        >
-                                          {reasonForm.saving ? 'Saving…' : 'Save reason'}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-
-                              </div>
-                            </td>
-                          </tr>
-                        )}
+            <ScrollableTable>
+              <table className="min-w-full text-left text-[11px] border-collapse">
+                <thead className="bg-slate-50 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                  <tr>
+                    <th rowSpan={2} className="px-3 py-2 border-r border-b border-slate-200 sticky left-0 bg-slate-50 z-20 min-w-[190px]">
+                      Material
+                    </th>
+                    <th rowSpan={2} className="px-3 py-2 border-r border-b border-slate-200 min-w-[110px]">
+                      Supplier
+                    </th>
+                    {grid.periods.map(p => (
+                      <th key={p.key} colSpan={3}
+                        className={`px-3 py-1.5 text-center border-r border-b border-slate-200 ${
+                          p.projected ? 'bg-amber-50/60' : ''}`}>
+                        {p.label}
+                        <div className="mt-0.5">
+                          <span className={`px-1.5 py-px rounded-full border text-[8px] normal-case ${
+                            p.projected
+                              ? 'bg-amber-100 text-amber-700 border-amber-200'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                            {p.projected ? 'projected' : 'MRP plan'}
+                          </span>
+                        </div>
+                      </th>
+                    ))}
+                    <th colSpan={3} className="px-3 py-1.5 text-center border-b border-slate-200 bg-slate-100">
+                      Total
+                      <div className="mt-0.5">
+                        <span className="px-1.5 py-px rounded-full border text-[8px] normal-case bg-slate-200 text-slate-600 border-slate-300">
+                          MRP months
+                        </span>
+                      </div>
+                    </th>
+                  </tr>
+                  <tr>
+                    {grid.periods.map(p => (
+                      <React.Fragment key={p.key}>
+                        <th className={`px-2 py-1.5 text-right border-b border-slate-200 ${p.projected ? 'bg-amber-50/60' : ''}`}>Forecast</th>
+                        <th className={`px-2 py-1.5 text-right border-b border-slate-200 ${p.projected ? 'bg-amber-50/60' : ''}`}>{p.projected ? '' : 'Ordered'}</th>
+                        <th className={`px-2 py-1.5 text-right border-r border-b border-slate-200 ${p.projected ? 'bg-amber-50/60' : ''}`}>{p.projected ? '±15%' : '%'}</th>
                       </React.Fragment>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    <th className="px-2 py-1.5 text-right border-b border-slate-200 bg-slate-100">Forecast</th>
+                    <th className="px-2 py-1.5 text-right border-b border-slate-200 bg-slate-100">Ordered</th>
+                    <th className="px-2 py-1.5 text-right border-b border-slate-200 bg-slate-100">%</th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-slate-100">
+                  {rows.length === 0 && (
+                    <tr>
+                      <td colSpan={2 + grid.periods.length * 3 + 3}
+                        className="px-4 py-10 text-center text-sm text-slate-400">
+                        No materials match.
+                      </td>
+                    </tr>
+                  )}
+
+                  {rows.map(row => (
+                    <React.Fragment key={row.materialId}>
+                      <tr className="hover:bg-slate-50 transition-colors cursor-pointer"
+                        onClick={() => toggle(row.materialId)}>
+                        <td className="px-3 py-2 border-r border-slate-200 sticky left-0 bg-white z-10">
+                          <div className="flex items-center gap-1.5">
+                            {expanded.has(row.materialId)
+                              ? <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+                              : <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />}
+                            <div className="min-w-0">
+                              <div className="font-bold text-slate-900 truncate">{row.materialName}</div>
+                              <div className="text-[9px] font-mono text-slate-500">{row.materialSku}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 border-r border-slate-200 text-slate-600">
+                          {row.supplierName}
+                        </td>
+
+                        {row.cells.map(c => c.projected ? (
+                          <React.Fragment key={c.periodKey}>
+                            <td className="px-2 py-2 text-right font-mono italic text-slate-500 bg-amber-50/30">
+                              {nf(c.forecastQty)}
+                            </td>
+                            <td className="px-2 py-2 text-right text-slate-300 bg-amber-50/30">—</td>
+                            <td className="px-2 py-2 text-right text-[9px] font-mono text-slate-400 border-r border-slate-200 bg-amber-50/30">
+                              {c.lowQty !== undefined
+                                ? `${nf(c.lowQty)}–${nf(c.highQty!)}`
+                                : '±15%'}
+                            </td>
+                          </React.Fragment>
+                        ) : (
+                          <React.Fragment key={c.periodKey}>
+                            <td className="px-2 py-2 text-right font-mono text-slate-600">
+                              {c.forecastQty === 0 ? <span className="text-slate-300">—</span> : nf(c.forecastQty)}
+                            </td>
+                            <td className="px-2 py-2 text-right font-mono font-bold text-slate-900">
+                              {c.actualQty === 0 ? <span className="text-slate-300">—</span> : nf(c.actualQty!)}
+                            </td>
+                            <td className="px-2 py-2 text-right border-r border-slate-200">
+                              <span className={`px-1.5 py-0.5 rounded-[3px] border text-[10px] font-mono font-bold ${pctClass(c.achievementPct, okAt, watchAt)}`}>
+                                {c.achievementPct === null ? 'n/a' : `${Math.round(c.achievementPct)}%`}
+                              </span>
+                            </td>
+                          </React.Fragment>
+                        ))}
+
+                        <td className="px-2 py-2 text-right font-mono text-slate-600 bg-slate-50">
+                          {nf(row.totalForecastQty)}
+                        </td>
+                        <td className="px-2 py-2 text-right font-mono font-bold text-slate-900 bg-slate-50">
+                          {nf(row.totalActualQty)}
+                        </td>
+                        <td className="px-2 py-2 text-right bg-slate-50">
+                          <span className={`px-1.5 py-0.5 rounded-[3px] border text-[10px] font-mono font-bold ${pctClass(row.totalAchievementPct, okAt, watchAt)}`}>
+                            {row.totalAchievementPct === null ? 'n/a' : `${Math.round(row.totalAchievementPct)}%`}
+                          </span>
+                        </td>
+                      </tr>
+
+                      {expanded.has(row.materialId) && (
+                        <tr className="bg-slate-50/80">
+                          <td colSpan={2 + grid.periods.length * 3 + 3} className="px-4 py-3">
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                                  Purchase orders raised
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                  {row.cells.filter(c => !c.projected).map(c => (
+                                    <div key={c.periodKey} className="text-[10px]">
+                                      <span className="text-slate-400">{c.periodLabel}:</span>{' '}
+                                      {c.poNumbers.length === 0
+                                        ? <span className="text-red-600 font-medium">none</span>
+                                        : c.poNumbers.map(n => (
+                                            <span key={n} className="ms-1 px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono">
+                                              {n}
+                                            </span>
+                                          ))}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="border-t border-slate-200 pt-2">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                                    Variance reasons
+                                  </p>
+                                  {reasonForm?.materialId !== row.materialId && (
+                                    <button
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        const firstReal = row.cells.find(c => !c.projected);
+                                        setReasonForm({
+                                          key: row.materialId, materialId: row.materialId,
+                                          period: firstReal?.periodKey ?? grid.periods[0].key,
+                                          code: 'other', notes: '', saving: false,
+                                        });
+                                      }}
+                                      className="text-[10px] font-bold text-brand-600 hover:underline"
+                                    >
+                                      + Add reason
+                                    </button>
+                                  )}
+                                </div>
+
+                                {reasons.filter(r => r.material_id === row.materialId).map(r => (
+                                  <div key={r.id} className="flex items-start gap-2 bg-white rounded-lg border border-slate-200 px-3 py-1.5 mb-1">
+                                    <span className="text-[9px] font-bold text-brand-700 bg-brand-50 border border-brand-200 px-1.5 py-0.5 rounded shrink-0">
+                                      {VARIANCE_REASON_LABELS[r.reason_code]}
+                                    </span>
+                                    <span className="text-[11px] text-slate-700 flex-1">{r.notes}</span>
+                                    <button onClick={e => { e.stopPropagation(); removeReason(r.id); }}
+                                      className="text-[10px] text-slate-400 hover:text-red-600">✕</button>
+                                  </div>
+                                ))}
+
+                                {reasonForm?.materialId === row.materialId && (
+                                  <div className="bg-white rounded-lg border border-brand-200 p-2.5 space-y-2"
+                                    onClick={e => e.stopPropagation()}>
+                                    <div className="flex gap-2">
+                                      <select value={reasonForm.period}
+                                        onChange={e => setReasonForm(f => f ? { ...f, period: e.target.value } : f)}
+                                        className="h-7 rounded-lg border border-slate-300 px-2 text-[11px]">
+                                        {row.cells.filter(c => !c.projected).map(c => (
+                                          <option key={c.periodKey} value={c.periodKey}>{c.periodLabel}</option>
+                                        ))}
+                                      </select>
+                                      <select value={reasonForm.code}
+                                        onChange={e => setReasonForm(f => f ? { ...f, code: e.target.value as VarianceReasonCode } : f)}
+                                        className="h-7 rounded-lg border border-slate-300 px-2 text-[11px] flex-1">
+                                        {(Object.entries(VARIANCE_REASON_LABELS) as [VarianceReasonCode, string][])
+                                          .map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+                                      </select>
+                                    </div>
+                                    <textarea rows={2} value={reasonForm.notes}
+                                      onChange={e => setReasonForm(f => f ? { ...f, notes: e.target.value } : f)}
+                                      placeholder="Which supplier, how big the gap, what happens next month…"
+                                      className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-[11px] resize-none focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                                    <div className="flex gap-2 justify-end">
+                                      <button onClick={() => setReasonForm(null)}
+                                        className="h-6 px-2.5 rounded-lg border border-slate-300 text-[10px] font-bold text-slate-600">
+                                        Cancel
+                                      </button>
+                                      <button onClick={() => saveReason(row)}
+                                        disabled={reasonForm.saving || !reasonForm.notes.trim()}
+                                        className="h-6 px-2.5 rounded-lg bg-brand-600 text-[10px] font-bold text-white disabled:opacity-50">
+                                        {reasonForm.saving ? 'Saving…' : 'Save'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+
+                  {/* Totals */}
+                  {rows.length > 0 && (
+                    <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
+                      <td className="px-3 py-2 border-r border-slate-200 sticky left-0 bg-slate-100 z-10">
+                        Total
+                      </td>
+                      <td className="px-3 py-2 border-r border-slate-200 text-slate-500 font-normal text-[10px]">
+                        {supplierFilter === 'all' ? 'All suppliers' : supplierOptions.find(s => s.id === supplierFilter)?.name}
+                      </td>
+                      {grid.periods.map((p, i) => {
+                        const f = rows.reduce((s, r) => s + r.cells[i].forecastQty, 0);
+                        const a = rows.reduce((s, r) => s + (r.cells[i].actualQty ?? 0), 0);
+                        const pct = p.projected || f <= 0 ? null : (a / f) * 100;
+                        return (
+                          <React.Fragment key={p.key}>
+                            <td className={`px-2 py-2 text-right font-mono ${p.projected ? 'italic text-slate-400 bg-amber-50/30' : 'text-slate-700'}`}>
+                              {nf(f)}
+                            </td>
+                            <td className={`px-2 py-2 text-right font-mono ${p.projected ? 'text-slate-300 bg-amber-50/30' : 'text-slate-900'}`}>
+                              {p.projected ? '—' : nf(a)}
+                            </td>
+                            <td className={`px-2 py-2 text-right border-r border-slate-200 ${p.projected ? 'bg-amber-50/30' : ''}`}>
+                              {p.projected ? <span className="text-slate-300 text-[10px]">—</span> : (
+                                <span className={`px-1.5 py-0.5 rounded-[3px] border text-[10px] font-mono font-bold ${pctClass(pct, okAt, watchAt)}`}>
+                                  {pct === null ? 'n/a' : `${Math.round(pct)}%`}
+                                </span>
+                              )}
+                            </td>
+                          </React.Fragment>
+                        );
+                      })}
+                      {(() => {
+                        const f = rows.reduce((s, r) => s + r.totalForecastQty, 0);
+                        const a = rows.reduce((s, r) => s + r.totalActualQty, 0);
+                        const pct = f > 0 ? (a / f) * 100 : null;
+                        return (
+                          <>
+                            <td className="px-2 py-2 text-right font-mono text-slate-700 bg-slate-200">{nf(f)}</td>
+                            <td className="px-2 py-2 text-right font-mono text-slate-900 bg-slate-200">{nf(a)}</td>
+                            <td className="px-2 py-2 text-right bg-slate-200">
+                              <span className={`px-1.5 py-0.5 rounded-[3px] border text-[10px] font-mono font-bold ${pctClass(pct, okAt, watchAt)}`}>
+                                {pct === null ? 'n/a' : `${Math.round(pct)}%`}
+                              </span>
+                            </td>
+                          </>
+                        );
+                      })()}
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </ScrollableTable>
           </div>
 
-          {/* Legend */}
-          <div className="flex flex-wrap gap-4 text-[10px] text-slate-500 border-t border-slate-100 pt-4">
-            <span><strong className="text-slate-700">Forecast drift</strong> = current run − baseline. Planning's number.</span>
-            <span><strong className="text-slate-700">Variance</strong> = ordered − baseline. Procurement's number.</span>
-            <span className="text-amber-700"><strong>Amber rows</strong> = unplanned buys (no baseline).</span>
-            <span className="text-red-700"><strong>Red rows</strong> = planned but not ordered.</span>
+          <div className="flex flex-wrap gap-4 text-[10px] text-slate-500">
+            <span><strong className="text-slate-700">Forecast</strong> = planned order releases from MRP (lead time already applied)</span>
+            <span><strong className="text-slate-700">Ordered</strong> = POs raised in that month</span>
+            <span><strong className="text-slate-700">%</strong> = ordered ÷ forecast</span>
+            <span className="text-amber-700"><strong>Amber columns</strong> = projected, no MRP plan — excluded from totals</span>
           </div>
         </div>
       </DataStateWrapper>
