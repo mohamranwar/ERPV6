@@ -23,7 +23,7 @@ import ScrollableTable from './ScrollableTable';
 import SearchBar from './SearchBar';
 import {
   buildGrid, resolveGridRunId,
-  type GridRow, type ProjectionMode,
+  type GridRow, type ProjectionMode, type Grain,
 } from '../services/rmForecastGrid';
 
 const NEVER_CANCELLED = { cancelled: false };
@@ -60,6 +60,7 @@ export default function RMForecastVarianceScreen({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [grain, setGrain] = useState<Grain>('month');
   const [horizon, setHorizon] = useState(6);
   const [projection, setProjection] = useState<ProjectionMode>('band');
   const [seed, setSeed] = useState(1);
@@ -75,7 +76,11 @@ export default function RMForecastVarianceScreen({
   const okAt = settings.thresholds.attainment_ok;
   const watchAt = settings.thresholds.attainment_watch;
 
-  const startPeriod = getPlanningPeriod();
+  // Monthly columns start at the month; weekly columns must start on a real
+  // date, because the week buckets step 7 days from it.
+  const startPeriod = grain === 'month'
+    ? getPlanningPeriod()
+    : `${getPlanningPeriod().slice(0, 7)}-01`;
 
   async function loadData(signal: LoadSignal = NEVER_CANCELLED) {
     setLoading(true);
@@ -111,9 +116,9 @@ export default function RMForecastVarianceScreen({
 
   const grid = useMemo(() => buildGrid({
     mrpResults, purchaseOrders, materials, suppliers,
-    startPeriod, horizonMonths: horizon, projection, runId, seed,
+    startPeriod, horizonMonths: horizon, projection, runId, seed, grain,
   }), [mrpResults, purchaseOrders, materials, suppliers,
-       startPeriod, horizon, projection, runId, seed]);
+       startPeriod, horizon, projection, runId, seed, grain]);
 
   const supplierFiltered = useMemo(
     () => supplierFilter === 'all'
@@ -205,12 +210,25 @@ export default function RMForecastVarianceScreen({
           {/* Controls */}
           <div className="bg-white rounded-xl border border-slate-200 p-3 flex items-end gap-4 flex-wrap">
             <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Grain</p>
+              <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
+                {([['month', 'Month'], ['week', 'Week']] as Array<[Grain, string]>).map(([v, t]) => (
+                  <button key={v}
+                    onClick={() => { setGrain(v); setHorizon(v === 'month' ? 6 : 8); }}
+                    aria-pressed={grain === v} className={segBtn(grain === v)}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Horizon</p>
               <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
-                {[4, 6, 12].map(h => (
+                {(grain === 'month' ? [4, 6, 12] : [8, 13, 26]).map(h => (
                   <button key={h} onClick={() => setHorizon(h)}
                     aria-pressed={horizon === h} className={segBtn(horizon === h)}>
-                    {h} months
+                    {h} {grain === 'month' ? 'months' : 'weeks'}
                   </button>
                 ))}
               </div>
@@ -218,7 +236,7 @@ export default function RMForecastVarianceScreen({
 
             <div>
               <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                Months beyond MRP plan
+                {grain === 'month' ? 'Months' : 'Weeks'} beyond MRP plan
               </p>
               <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
                 {([['band', 'Average ±15%'], ['varied', 'Varied per month'], ['off', 'Hide']] as Array<[ProjectionMode, string]>)
@@ -263,8 +281,10 @@ export default function RMForecastVarianceScreen({
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <p>
-                No MRP run covers this period yet. Run MRP first — every forecast figure
-                on this screen comes from planned order releases.
+                No {grain === 'month' ? 'monthly' : 'weekly'} MRP run covers this period.
+                Run MRP at {grain} grain first — every forecast figure here comes from
+                planned order releases, and a run executed at a different grain will not
+                line up with these columns.
               </p>
             </div>
           )}

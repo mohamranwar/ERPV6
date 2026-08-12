@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { isInPeriod } from '../supabaseClient';
 import { addMonths, monthLabel } from '../utils/periods';
 import type { Material, MRPResult, PurchaseOrder, Supplier } from '../types';
 
@@ -32,6 +31,56 @@ import type { Material, MRPResult, PurchaseOrder, Supplier } from '../types';
  * excluded from every total. A projection is not a plan, and the moment the
  * two are added together nobody can tell which part of a number was real.
  */
+
+export type Grain = 'week' | 'month';
+
+/**
+ * How a row's stored period maps to a grid column.
+ *
+ * MRP writes the actual period start into `week_start_date` regardless of the
+ * run's grain -- a monthly run stores '2026-08-01', a weekly run stores the
+ * real week start like '2026-08-17'. So the bucket key IS the stored date for
+ * weeks, and the month prefix for months. Slicing to YYYY-MM unconditionally,
+ * which is what this module did before, silently merged every week of a month
+ * into one column and made a weekly view impossible.
+ */
+export function bucketKey(dateStr: string, grain: Grain, weekAnchor?: string): string {
+  if (grain === 'month') return dateStr.slice(0, 7);
+
+  // A PO is raised on whatever day it is raised -- 2026-08-19, say -- while
+  // the weekly columns are anchored to the run's start date and step in
+  // 7-day increments: 2026-08-17, 2026-08-24, and so on. Comparing the raw
+  // dates means 19 Aug matches no column at all, and the PO disappears from
+  // the grid without any error. So a date is snapped BACK to the start of
+  // the week that contains it, measured from the same anchor the columns
+  // use, which is the only way the two agree.
+  if (!weekAnchor) return dateStr.slice(0, 10);
+  const anchor = Date.parse(weekAnchor.slice(0, 10) + 'T00:00:00Z');
+  const at = Date.parse(dateStr.slice(0, 10) + 'T00:00:00Z');
+  if (Number.isNaN(anchor) || Number.isNaN(at)) return dateStr.slice(0, 10);
+
+  const DAY = 86400000;
+  const weeksSince = Math.floor((at - anchor) / (7 * DAY));
+  return new Date(anchor + weeksSince * 7 * DAY).toISOString().slice(0, 10);
+}
+
+/** Monday-anchored ISO date n weeks after a start date. */
+export function addWeeks(dateStr: string, weeks: number): string {
+  const d = new Date(dateStr.slice(0, 10) + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + weeks * 7);
+  return d.toISOString().slice(0, 10);
+}
+
+function nextBucket(key: string, grain: Grain, i: number): string {
+  return grain === 'month' ? addMonths(key.slice(0, 7), i) : addWeeks(key, i);
+}
+
+function bucketLabel(key: string, grain: Grain): string {
+  if (grain === 'month') return monthLabel(key);
+  // e.g. "17 Aug" -- short enough for a dense column header.
+  const d = new Date(key + 'T00:00:00Z');
+  return `${d.getUTCDate()} ${d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })}`;
+}
 
 export type ProjectionMode =
   /** Flat average, with a +/-15% range shown alongside. Deterministic. */
@@ -95,8 +144,10 @@ export interface BuildGridInput {
   suppliers: readonly Supplier[];
   /** First month of the grid, 'YYYY-MM' or a full date. */
   startPeriod: string;
-  /** How many months wide, e.g. 4, 6 or 12. */
+  /** How many buckets wide. Months when grain is 'month', weeks when 'week'. */
   horizonMonths: number;
+  /** Column granularity. Must match the grain the MRP run was executed at. */
+  grain?: Grain;
   projection?: ProjectionMode;
   /** Only this run's rows count as the forecast. Null uses every run. */
   runId?: string | null;
@@ -132,13 +183,15 @@ function variationFactor(materialId: string, periodKey: string, seed: number): n
 export function mrpPlannedMonths(
   mrpResults: readonly MRPResult[],
   runId?: string | null,
+  grain: Grain = 'month',
+  weekAnchor?: string,
 ): Set<string> {
   const out = new Set<string>();
   for (const r of mrpResults) {
     if (runId && r.run_id !== runId) continue;
     if (!r.week_start_date) continue;
     if ((Number(r.planned_order_releases) || 0) <= 0) continue;
-    out.add(r.week_start_date.slice(0, 7));
+    out.add(bucketKey(r.week_start_date, grain, weekAnchor));
   }
   return out;
 }
@@ -147,17 +200,19 @@ export function buildGrid(input: BuildGridInput): { rows: GridRow[]; totals: Gri
   const {
     mrpResults, purchaseOrders, materials, suppliers,
     startPeriod, horizonMonths, projection = 'band', runId = null, seed = 1,
+    grain = 'month',
   } = input;
 
   const supplierName = new Map(suppliers.map(s => [s.id, s.name]));
-  const planned = mrpPlannedMonths(mrpResults, runId);
+  const weekAnchor = grain === 'week' ? startPeriod.slice(0, 10) : undefined;
+  const planned = mrpPlannedMonths(mrpResults, runId, grain, weekAnchor);
 
   // Column list. A month is "real" only if MRP actually planned something in
   // it -- not merely because it falls inside the requested horizon.
-  const start = startPeriod.slice(0, 7);
+  const start = grain === 'month' ? startPeriod.slice(0, 7) : startPeriod.slice(0, 10);
   const allPeriods = Array.from({ length: horizonMonths }, (_, i) => {
-    const key = addMonths(start, i);
-    return { key, label: monthLabel(key), projected: !planned.has(key) };
+    const key = nextBucket(start, grain, i);
+    return { key, label: bucketLabel(key, grain), projected: !planned.has(key) };
   });
 
   const periods = projection === 'off'
@@ -170,7 +225,7 @@ export function buildGrid(input: BuildGridInput): { rows: GridRow[]; totals: Gri
   for (const r of mrpResults) {
     if (runId && r.run_id !== runId) continue;
     if (!r.week_start_date) continue;
-    const key = r.week_start_date.slice(0, 7);
+    const key = bucketKey(r.week_start_date, grain, weekAnchor);
     const qty = Number(r.planned_order_releases) || 0;
     if (qty <= 0) continue;
     let byPeriod = forecast.get(r.material_id);
@@ -189,7 +244,7 @@ export function buildGrid(input: BuildGridInput): { rows: GridRow[]; totals: Gri
     // today, so this is inert -- it is here so adding one later is a schema
     // change and nothing else.
     if ((po.status as string) === 'cancelled') continue;
-    const key = po.po_date.slice(0, 7);
+    const key = bucketKey(po.po_date, grain, weekAnchor);
     let byPeriod = ordered.get(po.material_id);
     if (!byPeriod) { byPeriod = new Map(); ordered.set(po.material_id, byPeriod); }
     const cur = byPeriod.get(key) ?? { qty: 0, pos: [] };

@@ -82,5 +82,8 @@ describe('RM forecast grid renders as a grid', () => {
     expect(screen.getByText('6 months')).toBeInTheDocument();
     expect(screen.getByText('12 months')).toBeInTheDocument();
     expect(screen.getByText(/Average ±15%/)).toBeInTheDocument();
+    // Grain toggle
+    expect(screen.getByText('Month')).toBeInTheDocument();
+    expect(screen.getByText('Week')).toBeInTheDocument();
   });
 });

@@ -245,3 +245,97 @@ describe('mrpPlannedMonths', () => {
     expect(mrpPlannedMonths(twoRuns, 'R2').has('2026-12')).toBe(true);
   });
 });
+
+// ── Weekly grain ──────────────────────────────────────────────────────────
+// MRP writes the real period start into week_start_date, so a weekly run
+// stores dates like 2026-08-17 rather than a month. These guard the bucket
+// arithmetic that keeps columns and data agreeing.
+
+const WEEK_MRP: MRPResult[] = [
+  mrp('M1', '2026-08', 500), // overwritten below with explicit dates
+];
+
+function weekMrp(materialId: string, date: string, qty: number, runId = 'R1'): MRPResult {
+  return {
+    id: `${runId}-${materialId}-${date}`, run_id: runId, run_date: '2026-08-01T00:00:00Z',
+    material_id: materialId, week_start_date: date,
+    projected_available: 0, safety_stock: 0, net_requirements: qty,
+    planned_order_releases: qty,
+  };
+}
+
+describe('weekly grain', () => {
+  const weekly = [
+    weekMrp('M1', '2026-08-17', 250),
+    weekMrp('M1', '2026-08-24', 250),
+    weekMrp('M1', '2026-08-31', 250),
+  ];
+  const weekBase = {
+    mrpResults: weekly, materials: [material('M1')], suppliers,
+    startPeriod: '2026-08-17', horizonMonths: 4, grain: 'week' as const,
+  };
+
+  it('emits one column per week, stepping 7 days', () => {
+    const { periods } = buildGrid({ ...weekBase, purchaseOrders: [] });
+    expect(periods.map(p => p.key)).toEqual([
+      '2026-08-17', '2026-08-24', '2026-08-31', '2026-09-07',
+    ]);
+  });
+
+  it('does not collapse the weeks of a month into one column', () => {
+    // The bug this guards: slicing to YYYY-MM unconditionally merged every
+    // week of August into a single bucket, making a weekly view impossible.
+    const { rows } = buildGrid({ ...weekBase, purchaseOrders: [] });
+    expect(rows[0].cells[0].forecastQty).toBe(250);
+    expect(rows[0].cells[1].forecastQty).toBe(250);
+    expect(rows[0].cells[2].forecastQty).toBe(250);
+  });
+
+  /**
+   * The bug found while building this. Columns are anchored to the run start
+   * and step in 7-day increments, but a PO is raised on whatever day it is
+   * raised. Comparing raw dates means a PO dated 19 Aug matches no column and
+   * vanishes from the grid with no error at all.
+   */
+  it('puts a mid-week PO into the week that contains it', () => {
+    const { rows } = buildGrid({
+      ...weekBase,
+      purchaseOrders: [po('1', 'M1', 240, '2026-08-19')], // Wednesday
+    });
+    expect(rows[0].cells[0].actualQty).toBe(240);   // week of 17 Aug
+    expect(rows[0].cells[1].actualQty).toBe(0);
+  });
+
+  it('puts a PO on the last day of a week in that week, not the next', () => {
+    const { rows } = buildGrid({
+      ...weekBase,
+      purchaseOrders: [po('1', 'M1', 100, '2026-08-23')], // day before next anchor
+    });
+    expect(rows[0].cells[0].actualQty).toBe(100);
+    expect(rows[0].cells[1].actualQty).toBe(0);
+  });
+
+  it('puts a PO on a week boundary into the new week', () => {
+    const { rows } = buildGrid({
+      ...weekBase,
+      purchaseOrders: [po('1', 'M1', 100, '2026-08-24')], // exactly the anchor
+    });
+    expect(rows[0].cells[0].actualQty).toBe(0);
+    expect(rows[0].cells[1].actualQty).toBe(100);
+  });
+
+  it('still computes percentages per week', () => {
+    const { rows } = buildGrid({
+      ...weekBase,
+      purchaseOrders: [po('1', 'M1', 300, '2026-08-19')],
+    });
+    expect(rows[0].cells[0].achievementPct).toBe(120);
+  });
+
+  it('projects weeks past the MRP plan from the planned-week average', () => {
+    const { rows, periods } = buildGrid({ ...weekBase, purchaseOrders: [] });
+    expect(periods[3].projected).toBe(true);
+    expect(rows[0].cells[3].forecastQty).toBe(250);
+    expect(rows[0].cells[3].actualQty).toBeNull();
+  });
+});
