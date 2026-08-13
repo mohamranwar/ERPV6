@@ -24,14 +24,14 @@ describe('RM forecast grid renders as a grid', () => {
       expect(screen.getByText('RM Forecast vs Actual PO')).toBeInTheDocument();
     }, { timeout: 15000 });
 
-    // Supplier is its own column now, not a suffix on the SKU line.
-    // Scoped to the table header: "Supplier" also appears as the filter label.
+    // Master-detail: the period breakdown lives in the detail pane, and the
+    // supplier is shown there rather than as a grid column. Assert on what
+    // the layout actually is now, not on the wide grid it replaced.
     const headers = Array.from(document.querySelectorAll('thead th'))
       .map(th => th.textContent?.trim());
-    expect(headers).toContain('Supplier');
-    // Per-month sub-headers.
-    expect(screen.getAllByText('Forecast').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Ordered').length).toBeGreaterThan(0);
+    expect(headers).toContain('Forecast');
+    expect(headers).toContain('Ordered');
+    expect(headers).toContain('Purchase orders');
   });
 
   it('every body row has exactly as many cells as the header declares', async () => {
@@ -82,9 +82,10 @@ describe('RM forecast grid renders as a grid', () => {
     expect(screen.getByText('6 months')).toBeInTheDocument();
     expect(screen.getByText('12 months')).toBeInTheDocument();
     expect(screen.getByText(/Average ±15%/)).toBeInTheDocument();
-    // Grain toggle
-    expect(screen.getByText('Month')).toBeInTheDocument();
-    expect(screen.getByText('Week')).toBeInTheDocument();
+    // Grain toggle. "Month" also appears as a column header in the detail
+    // pane, so this targets the button specifically rather than any text.
+    expect(screen.getByRole('button', { name: 'Month' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Week' })).toBeInTheDocument();
   });
 });
 
@@ -115,5 +116,37 @@ describe('RM forecast screen is actually routable', () => {
 
     const unrouted = navIds.filter(id => !caseIds.includes(id));
     expect(unrouted).toEqual([]);
+  });
+});
+
+/**
+ * Master–detail behaviour. The list must always have a selection once data
+ * exists, or the detail pane renders empty on arrival and the screen looks
+ * broken before the user has done anything.
+ */
+describe('master-detail selection', () => {
+  it('selects a material by default rather than showing an empty pane', async () => {
+    render(<RMForecastVarianceScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('RM Forecast vs Actual PO')).toBeInTheDocument();
+    }, { timeout: 15000 });
+
+    // The detail pane's headline figures are only rendered when something
+    // is selected, so their presence is the assertion.
+    const labels = screen.queryAllByText('Gap');
+    expect(labels.length).toBeGreaterThan(0);
+  });
+
+  it('shows the period breakdown vertically, one row per period', async () => {
+    const { container } = render(<RMForecastVarianceScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('RM Forecast vs Actual PO')).toBeInTheDocument();
+    }, { timeout: 15000 });
+
+    // The point of the rewrite: periods run DOWN the detail table rather
+    // than across a very wide grid, so a material reads without scrolling
+    // sideways. One header row, and a period per body row.
+    const headRows = container.querySelectorAll('thead tr');
+    expect(headRows.length).toBe(1);
   });
 });
