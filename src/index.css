@@ -1103,3 +1103,33 @@ input[type="date"].input-base {
 [data-theme="dark"] .app-sidebar .text-brand-600,
 [data-theme="dark"] .app-sidebar .text-brand-700 { color: #B4C6E0; }
 [data-theme="dark"] .app-sidebar .text-brand-300 { color: #7E9BC5; }
+
+/* ── Compact density: KPI cards ───────────────────────────────────────────
+   The density toggle in the toolbar only ever changed table cell padding.
+   On the Dashboard the KPI tiles are the tallest thing on screen, so
+   compacting rows while leaving four tall cards in place barely changed how
+   much a planner could actually see -- the toggle looked broken.
+
+   These rules bring the cards down with everything else, which is what buys
+   the extra table rows. Applied via the existing `density-compact` class on
+   <main>, so all ten card instances follow without a prop threaded through
+   ten call sites. */
+.density-compact .kpi-card {
+  padding: 0.6rem 0.7rem;
+  gap: 0.35rem;
+  border-radius: 0.6rem;
+}
+.density-compact .kpi-card__label { font-size: 9px; letter-spacing: .06em; }
+.density-compact .kpi-card__value { font-size: 1.15rem; }
+.density-compact .kpi-card__sub   { font-size: 9px; }
+.density-compact .kpi-card__icon  { padding: 0.25rem; border-radius: 0.4rem; }
+.density-compact .kpi-card__icon svg { width: 0.75rem; height: 0.75rem; }
+.density-compact .kpi-card__rail  { padding-top: 0; }
+
+/* The grid between the cards tightens too, or the saving is eaten by gaps. */
+.density-compact .kpi-grid { gap: 0.5rem; }
+
+/* Section rhythm follows the same toggle. Compacting the cards alone gets
+   eaten by the gaps between sections, so the stack tightens with them. */
+.density-compact .dash-stack > * + * { margin-top: 0.75rem; }
+.density-compact .card-elevated { padding: 0.85rem; }

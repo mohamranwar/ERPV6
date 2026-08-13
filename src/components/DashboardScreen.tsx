@@ -88,6 +88,8 @@ import DashboardCustomizerModal, {
 const NEVER_CANCELLED: LoadSignal = { cancelled: false };
 
 interface DashboardScreenProps {
+  /** Drives chart height; the CSS class alone cannot re-render this tree. */
+  density?: 'comfortable' | 'compact';
   searchQuery?: string;
   setSearchQuery?: (val: string) => void;
   refreshKey?: number;
@@ -99,6 +101,7 @@ export default function DashboardScreen({
   setSearchQuery = () => {},
   refreshKey = 0,
   onNavigate,
+  density = 'comfortable',
 }: DashboardScreenProps) {
   const [materialCoverages, setMaterialCoverages] = useState<VMaterialCoverage[]>([]);
   const [productCoverages, setProductCoverages] = useState<VProductCoverage[]>([]);
@@ -773,7 +776,7 @@ export default function DashboardScreen({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="kpi-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="card-elevated p-4 h-28 flex flex-col justify-between">
               <div className="h-3 w-24 bg-slate-200 rounded"></div>
@@ -829,12 +832,24 @@ export default function DashboardScreen({
   // Individual Widget Renderer
   const renderWidget = (id: string, config?: WidgetConfig) => {
     const heightVal = config?.height || 'md';
-    const chartHeight = heightVal === 'sm' ? 180 : heightVal === 'lg' ? 360 : 240;
+    // Charts are the tallest thing on this page by a wide margin, so the
+    // density toggle barely changed what fits until they followed it too:
+    // compacting the KPI cards alone reclaimed 27% of a card but only 5%
+    // of the page.
+    //
+    // This has to arrive as a PROP, not by reading the class off the DOM.
+    // The class lives on <main> in App, so flipping it re-renders nothing
+    // here and the charts kept their old height until some unrelated state
+    // change happened to repaint them -- the same trap as the chart colour
+    // cache, where the value was right and nothing had asked for a repaint.
+    const compact = density === 'compact';
+    const base = heightVal === 'sm' ? 180 : heightVal === 'lg' ? 360 : 240;
+    const chartHeight = compact ? Math.round(base * 0.7) : base;
 
     switch (id) {
       case 'kpi_cards':
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="kpi-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard
               label="Total RM Stock Coverage"
               value={`${totalRmCoverageMonths.toFixed(1)}`}
@@ -1428,7 +1443,7 @@ export default function DashboardScreen({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="dash-stack space-y-6">
       <ContentHeader
         title="Supply chain dashboard"
         actions={

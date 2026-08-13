@@ -93,23 +93,23 @@ export function KpiCard({
     <Element
       {...(isInteractive ? { onClick, type: 'button' as const } : {})}
       whileHover={isInteractive ? { y: -2, transition: { duration: 0.15 } } : undefined}
-      className={`bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] p-4 flex flex-col justify-between gap-2.5 text-start transition-all ${
+      className={`kpi-card bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] p-4 flex flex-col justify-between gap-2.5 text-start transition-all ${
         isInteractive ? 'cursor-pointer hover:border-slate-300' : ''
       } ${className}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider leading-tight">
+        <span className="kpi-card__label text-[11px] font-bold text-slate-500 uppercase tracking-wider leading-tight">
           {label}
         </span>
         {icon && (
-          <div className={`p-1.5 rounded-lg shrink-0 ${ICON_BG_CLASS[intent]}`}>
+          <div className={`kpi-card__icon p-1.5 rounded-lg shrink-0 ${ICON_BG_CLASS[intent]}`}>
             {icon}
           </div>
         )}
       </div>
 
       <div className="flex items-baseline gap-1.5 flex-wrap">
-        <span className={`text-2xl font-black font-mono tracking-tight leading-none ${INTENT_CLASS[intent]}`}>
+        <span className={`kpi-card__value text-2xl font-black font-mono tracking-tight leading-none ${INTENT_CLASS[intent]}`}>
           {value}
         </span>
         {unit && (
@@ -136,13 +136,13 @@ export function KpiCard({
             </span>
           )}
           {sub && (
-            <span className="text-slate-500 font-medium">{sub}</span>
+            <span className="kpi-card__sub text-slate-500 font-medium">{sub}</span>
           )}
         </div>
       )}
 
       {progress !== undefined && (
-        <div className="flex items-center gap-2 pt-0.5">
+        <div className="kpi-card__rail flex items-center gap-2 pt-0.5">
           <div className="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
             <div
               className={`h-1.5 rounded-full transition-all duration-500 ${PROGRESS_CLASS[intent]}`}

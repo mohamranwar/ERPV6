@@ -241,7 +241,7 @@ export default function App() {
         {(() => {
           switch (activeScreen) {
             case 'dashboard':
-              return <DashboardScreen searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} onNavigate={setActiveScreen} refreshKey={refreshKey} />;
+              return <DashboardScreen searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} onNavigate={setActiveScreen} refreshKey={refreshKey} density={tableDensity} />;
             case 'bom':
               return <BOMEditorScreen searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} onNavigate={setActiveScreen} refreshKey={refreshKey} />;
             case 'sales_plan':
