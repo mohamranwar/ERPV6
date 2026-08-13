@@ -252,6 +252,8 @@ export default function App() {
               return <ProductionPlanScreen searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} onNavigate={setActiveScreen} refreshKey={refreshKey} />;
             case 'mrp':
               return <MRPScreen searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} onNavigate={setActiveScreen} refreshKey={refreshKey} />;
+            case 'rm_forecast_variance':
+              return <RMForecastVarianceScreen searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} refreshKey={refreshKey} />;
             case 'drill_down':
               return <MaterialDrillDown searchQuery={activeSearchQuery} setSearchQuery={setActiveSearchQuery} onNavigate={setActiveScreen} refreshKey={refreshKey} initialMode="selector" />;
             case 'material_inspection':

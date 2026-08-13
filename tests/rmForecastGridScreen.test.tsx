@@ -87,3 +87,33 @@ describe('RM forecast grid renders as a grid', () => {
     expect(screen.getByText('Week')).toBeInTheDocument();
   });
 });
+
+/**
+ * The bug this exists to prevent, which shipped and reached the user.
+ *
+ * Every other piece was in place -- the ScreenID union, the SCREEN_META
+ * entry, the sidebar nav item, the lazy import -- but the `case` in App's
+ * render switch was missing. TypeScript cannot catch that: a switch with no
+ * matching case just falls through to the default, so clicking "RM Forecast
+ * vs PO" rendered the Dashboard under the RM Forecast header. It typechecked,
+ * the whole suite passed, and the screen was simply never reachable.
+ *
+ * Every existing test rendered the component directly, which is exactly why
+ * none of them noticed. This one goes through App.
+ */
+describe('RM forecast screen is actually routable', () => {
+  it('has a route case for every screen that has a nav entry', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const src = fs.readFileSync(path.resolve(process.cwd(), 'src/App.tsx'), 'utf8');
+
+    // Screen ids that appear as a nav item must also appear as a case.
+    const navIds = Array.from(src.matchAll(/\{\s*id:\s*'([a-z_]+)'\s*,\s*label:/g))
+      .map(m => m[1]);
+    const caseIds = Array.from(src.matchAll(/case\s+'([a-z_]+)'\s*:/g))
+      .map(m => m[1]);
+
+    const unrouted = navIds.filter(id => !caseIds.includes(id));
+    expect(unrouted).toEqual([]);
+  });
+});
