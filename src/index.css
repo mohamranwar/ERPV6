@@ -115,6 +115,7 @@
   --chart-grid: #E3E9F1;
   --chart-axis: #7C8CA3;
   --chart-ref: #16223A;
+  --chart-label: #0F1A2C;
 
   /* ── Surfaces: navy-tinted ───────────────────────────────────────────
      The canvas carries a trace of the brand hue rather than being neutral
@@ -888,22 +889,33 @@ input[type="date"].input-base {
   color: #D6E0EF;
 }
 
-/* ── Dark mode — GROUNDWORK ONLY, NOT YET COMPLETE ────────────────────────
+/* ── Dark mode ────────────────────────────────────────────────────────────
    Applied by adding `data-theme="dark"` to <html>.
 
-   These token overrides are correct and the toggle works, but dark mode is
-   NOT finished and the button is hidden until it is. A screenshot of the
-   built app showed the canvas going dark while every card, table and header
-   stayed white.
+   HOW THIS WORKS WITHOUT TOUCHING 2,196 CLASSES.
 
-   The reason: 2,196 utility classes across the components are hardcoded to
-   light values -- bg-white, text-slate-900, border-slate-200 and so on. A
-   CSS token cannot reach a class whose value is literally white. Finishing
-   this means migrating those to token-backed classes, which is a large,
-   separate piece of work and not something to half-do.
+   The first attempt at dark mode failed: the canvas went dark and every
+   card, table and header stayed white, because the components use literal
+   utilities -- bg-white, text-slate-900, border-slate-200 -- and a custom
+   token cannot reach a class whose value is white.
 
-   Left in place because the token layer below is the right foundation for
-   that migration, and re-deriving it later would be wasted effort.
+   Migrating all of them looked like the only route. But Tailwind v4
+   compiles every colour utility to a variable reference:
+
+       .bg-white       { background-color: var(--color-white) }
+       .text-slate-500 { color: var(--color-slate-500) }
+
+   So the utilities are ALREADY indirect. Redefining --color-white and the
+   slate ramp under this selector re-points all 2,196 of them at once, with
+   no component edits and nothing to keep in sync afterwards.
+
+   The slate ramp is INVERTED, not merely darkened: slate-50 (a near-white
+   background in light mode) has to become a near-black surface, while
+   slate-900 (near-black text) has to become near-white. Simply darkening
+   every step would leave dark text on dark backgrounds everywhere.
+
+   The ramp is also tinted toward navy rather than neutral grey, so it sits
+   with the brand instead of looking like a separate greyscale theme.
 
    The status colours are RE-TUNED rather than reused. The light-mode green
    (#12B76A) and red (#D92D20) are correct on white but far too saturated on
@@ -911,6 +923,23 @@ input[type="date"].input-base {
    shift. These sit at a similar perceived brightness against a dark surface
    instead, which is what keeps a stockout badge readable without shouting. */
 [data-theme="dark"] {
+  /* ── The inversion ──────────────────────────────────────────────────
+     Read this as a mirror: 50 <-> 900, 100 <-> 800, and so on. Anything
+     used as a light background becomes a dark surface; anything used as
+     dark text becomes light ink. Values are navy-tinted, not neutral. */
+  --color-white: #151E2E;      /* every bg-white card */
+  --color-slate-50:  #111A28;  /* subtle panel / table header fill */
+  --color-slate-100: #1C2739;  /* hover rows, chips */
+  --color-slate-200: #243147;  /* the workhorse border */
+  --color-slate-300: #31405A;  /* stronger border, input outline */
+  --color-slate-400: #6B7C93;  /* faint text -- still readable on dark */
+  --color-slate-500: #8697AD;  /* muted text */
+  --color-slate-600: #A3B2C6;  /* secondary text */
+  --color-slate-700: #C3CFDF;  /* body text */
+  --color-slate-800: #D8E1EC;  /* strong text */
+  --color-slate-900: #E4EAF2;  /* headings */
+  --color-slate-950: #F1F5FA;  /* highest-contrast text */
+
   --color-surface-0: #151E2E;
   --color-surface-1: #111A28;
   --color-surface-2: #0D1420;
@@ -928,6 +957,7 @@ input[type="date"].input-base {
   --chart-grid: #243147;
   --chart-axis: #7C8CA3;
   --chart-ref: #B4C6E0;
+  --chart-label: #E4EAF2;
   --chart-actual-fill: #4A6FA5;
   --chart-over-fill: #2DBE74;
   --chart-under-fill: #DC5B57;
@@ -940,6 +970,32 @@ input[type="date"].input-base {
 [data-theme="dark"] body {
   background-color: var(--color-surface-2);
   color: var(--color-ink);
+}
+
+/* ── The sidebar opts out of the inversion ────────────────────────────────
+   The sidebar is dark in BOTH modes, so its text already uses the light end
+   of the ramp -- text-slate-300 on near-black. Inverting the ramp globally
+   turned that text dark-on-dark and made the whole navigation unreadable,
+   which a screenshot caught immediately.
+
+   Re-pinning the ramp to its LIGHT-mode values inside the sidebar leaves
+   those utilities meaning what they meant when they were written. The scope
+   is deliberately the sidebar only; everywhere else the inversion is what
+   makes dark mode work. */
+[data-theme="dark"] .app-sidebar,
+[data-theme="dark"] .app-sidebar * {
+  --color-white: #ffffff;
+  --color-slate-50:  #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
 }
 
 [data-theme="dark"] .app-sidebar {

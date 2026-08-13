@@ -12,6 +12,7 @@ import {
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import { useAuth } from './context/AuthContext';
+import { useTheme } from './context/ThemeContext';
 import { useToast } from './context/ToastConfirmContext';
 import LoginScreen from './components/LoginScreen';
 
@@ -42,7 +43,7 @@ import {
   LineChart, FolderGit2, Truck, BarChart4, ClipboardList, Upload,
   ChevronLeft, ChevronRight, UserCircle2, CalendarRange, Menu, X,
   Download, Maximize2, Minimize2, Box, Sparkles, Globe, Search,
-  Lock, TrendingDown,
+  Lock, TrendingDown, Moon, Sun,
 } from 'lucide-react';
 
 type ScreenID =
@@ -127,6 +128,7 @@ const NAV_GROUPS: Array<{ label: string; items: Array<{ id: ScreenID; label: str
 
 export default function App() {
   const { currentUser, loading: authLoading, logout, hasRole } = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
   const { showToast } = useToast();
 
   const [activeScreen, setActiveScreen] = useState<ScreenID>('dashboard');
@@ -429,6 +431,16 @@ export default function App() {
           </div>
           {sidebarPinned && (
             <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={toggleTheme}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                className="p-1.5 rounded-md border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              >
+                {theme === 'dark'
+                  ? <Sun className="w-3.5 h-3.5" />
+                  : <Moon className="w-3.5 h-3.5" />}
+              </button>
               <button
                 onClick={logout}
                 title="Sign out"

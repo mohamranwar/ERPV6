@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useLayoutEffect, useState } from 'react';
 import { resetChartColorCache } from '../utils/chartColors';
 
 /**
@@ -65,9 +65,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(() =>
     typeof window === 'undefined' ? 'light' : initialTheme());
 
-  useEffect(() => { apply(theme); }, [theme]);
+  /* The attribute and the cache clear must both happen BEFORE React paints
+     the new tree, not after.
+
+     Doing this in useEffect looked right and was subtly wrong: an effect
+     runs after render, so on a toggle the charts re-rendered first -- while
+     the cache still held the previous mode's hex strings -- and only then
+     did the attribute flip and the cache clear. The result was a chart
+     whose labels stayed dark-on-dark even though every token was correct,
+     which cost two wrong diagnoses before the SVG fill was actually read.
+
+     useLayoutEffect runs synchronously after commit but before paint, so
+     nothing is ever painted from a stale cache. */
+  useLayoutEffect(() => { apply(theme); }, [theme]);
 
   const setTheme = useCallback((t: ThemeMode) => {
+    // Flip the DOM and drop the cache immediately, so any component reading
+    // chartColors() during the render this triggers sees the new palette.
+    apply(t);
     setThemeState(t);
     try { localStorage.setItem(STORAGE_KEY, t); } catch { /* non-fatal */ }
   }, []);

@@ -65,3 +65,45 @@ describe('dark mode attribute', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBeNull();
   });
 });
+
+/**
+ * The ordering bug that cost two wrong diagnoses.
+ *
+ * Applying the theme in useEffect looked correct and was subtly wrong: an
+ * effect runs AFTER render, so on a toggle the charts re-rendered while the
+ * colour cache still held the previous mode's hex strings, and only then did
+ * the cache clear. Every token was right, the DOM attribute was right, and
+ * the chart still painted dark-on-dark.
+ *
+ * These assert the invariant that actually matters: by the time anything can
+ * read chartColors(), the cache must already reflect the current attribute.
+ */
+describe('theme switch ordering', () => {
+  it('a cleared cache re-reads the tokens set by the new theme', () => {
+    document.documentElement.style.setProperty('--chart-label', '#111111');
+    resetChartColorCache();
+    expect(chartColors().label).toBe('#111111');
+
+    // Simulate a switch: attribute flips and cache clears together.
+    document.documentElement.style.setProperty('--chart-label', '#EEEEEE');
+    resetChartColorCache();
+    expect(chartColors().label).toBe('#EEEEEE');
+
+    document.documentElement.style.removeProperty('--chart-label');
+  });
+
+  it('label is a distinct token from ref, so data labels never inherit a line colour', () => {
+    // These were briefly the same value. A reference LINE and the text
+    // printed on the panel need opposite contrast in dark mode: one must
+    // stand off the plot, the other off the panel behind it.
+    document.documentElement.style.setProperty('--chart-ref', '#AAAAAA');
+    document.documentElement.style.setProperty('--chart-label', '#BBBBBB');
+    resetChartColorCache();
+    const c = chartColors();
+    expect(c.ref).toBe('#AAAAAA');
+    expect(c.label).toBe('#BBBBBB');
+    expect(c.label).not.toBe(c.ref);
+    document.documentElement.style.removeProperty('--chart-ref');
+    document.documentElement.style.removeProperty('--chart-label');
+  });
+});

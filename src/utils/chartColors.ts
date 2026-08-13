@@ -40,6 +40,10 @@ export interface ChartPalette {
   axis: string;
   /** Reference lines and target rules. */
   ref: string;
+  /** Data labels printed on top of the plot. Must contrast with the PANEL,
+   *  not with the plot ink -- these were briefly mapped to `ref` and went
+   *  dark-on-dark the moment dark mode landed. */
+  label: string;
 }
 
 /** Shipped values, used when the DOM is unavailable (tests, SSR). */
@@ -52,6 +56,7 @@ const FALLBACK: ChartPalette = {
   grid: '#E3E9F1',
   axis: '#7C8CA3',
   ref: '#16223A',
+  label: '#0F1A2C',
 };
 
 let cache: ChartPalette | null = null;
@@ -80,6 +85,7 @@ export function chartColors(): ChartPalette {
       grid: readVar(s, '--chart-grid', FALLBACK.grid),
       axis: readVar(s, '--chart-axis', FALLBACK.axis),
       ref: readVar(s, '--chart-ref', FALLBACK.ref),
+      label: readVar(s, '--chart-label', FALLBACK.label),
     };
     return cache;
   } catch {

@@ -5,6 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { chartColors } from '../../utils/chartColors';
+import { useTheme } from '../../context/ThemeContext';
 import {
   Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Legend, Line,
   LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -43,7 +44,7 @@ const UNDER_FILL = () => c().under;
 const GRID = () => c().grid;
 const AXIS = () => c().axis;
 const REF = () => c().ref;
-const INK = () => c().ref;
+const INK = () => c().label;
 
 export type ChartType = 'grouped' | 'stacked' | 'line';
 export type Measure = 'pva' | 'actual' | 'plan' | 'variance' | 'attainment';
@@ -146,6 +147,15 @@ export function ChartBuilder({
   precision = 1,
   className,
 }: ChartBuilderProps) {
+  /* Subscribing to the theme is what makes the colours actually change.
+     chartColors() returns resolved hex strings and ThemeContext clears its
+     cache on switch -- but clearing a cache does not re-render anything.
+     Without this, Recharts keeps the SVG it already painted and the chart
+     stays in the previous mode's palette until a full page reload. That is
+     exactly how the target caption ended up dark-on-dark: the cache was
+     correct, nothing had asked the chart to paint again. */
+  useTheme();
+
   const rows = useMemo<Row[]>(
     () => data.map(d => ({
       category: d.category,
@@ -257,7 +267,15 @@ export function ChartBuilder({
       {series.length > 1 && (
         <Legend
           verticalAlign="top" align="right" height={26}
-          wrapperStyle={{ fontSize: 11, fontWeight: 600, color: AXIS() }}
+          wrapperStyle={{ fontSize: 11, fontWeight: 600, color: INK() }}
+          /* Recharts colours each legend label with its series colour by
+             default, which renders "Plan" in the faint ghost stroke -- fine
+             on white, close to invisible on a dark panel. The swatch already
+             carries the series identity, so the text is forced to the label
+             colour and stays readable in both modes. */
+          formatter={(value: string) => (
+            <span style={{ color: INK() }}>{value}</span>
+          )}
         />
       )}
       {config.showTarget && (
@@ -269,7 +287,7 @@ export function ChartBuilder({
           label={{
             value: `${config.targetCaption} ${config.targetValue}`,
             position: 'insideTopRight',
-            fill: REF(), fontSize: 10, fontWeight: 700,
+            fill: INK(), fontSize: 10, fontWeight: 700,
             fontFamily: 'var(--font-mono)',
           }}
         />
