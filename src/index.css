@@ -191,7 +191,7 @@ body,
 body {
   /* High contrast, ultra-legible typography defaults */
   background-color: var(--color-surface-2);
-  color: #0f172a;
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'calt', 'tnum';
   -webkit-font-smoothing: antialiased;
@@ -296,9 +296,9 @@ th {
   text-align: center !important;
   vertical-align: middle;
   border-bottom: 1px solid var(--color-brand-200);
-  border-right: 1px solid #e6e8ef;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-  color: #475569 !important;
+  border-right: 1px solid var(--color-line);
+  background: linear-gradient(180deg, var(--color-surface-0) 0%, var(--color-surface-1) 100%) !important;
+  color: var(--color-ink-muted) !important;
   font-weight: 700 !important;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -313,12 +313,16 @@ th {
 }
 
 td {
-  border-bottom: 1px solid #eef0f5;
-  border-right: 1px solid #f3f5f9;
+  border-bottom: 1px solid var(--color-line-soft);
+  border-right: 1px solid var(--color-line-soft);
   padding: 0.65rem 0.85rem;
   vertical-align: middle;
   font-weight: 500;
-  color: #334155;
+  /* Element selector, so it outranks every text-slate-* utility on a cell.
+     Hardcoded, it forced light-mode ink onto every table cell in dark mode
+     regardless of the class the component asked for -- the classes looked
+     right in the markup and lost silently at paint. */
+  color: var(--color-ink);
   font-size: 0.85rem;
   transition: background-color 0.15s ease-in-out;
 }
@@ -340,19 +344,19 @@ table td.sticky-col-1 {
 
 table th.sticky-col-1 {
   z-index: 35;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-  color: #475569 !important;
+  background: linear-gradient(180deg, var(--color-surface-0) 0%, var(--color-surface-1) 100%) !important;
+  color: var(--color-ink-muted) !important;
   font-weight: 700 !important;
   text-align: center !important;
-  border-right: 1px solid #e6e8ef;
+  border-right: 1px solid var(--color-line);
 }
 
 table td.sticky-col-1 {
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
 }
 
 table tbody tr:nth-child(even) td.sticky-col-1 {
-  background-color: #fafbfc;
+  background-color: var(--color-surface-1);
 }
 
 table tbody tr:hover td.sticky-col-1 {
@@ -370,19 +374,19 @@ table td.sticky-col-2 {
 
 table th.sticky-col-2 {
   z-index: 35;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-  color: #475569 !important;
+  background: linear-gradient(180deg, var(--color-surface-0) 0%, var(--color-surface-1) 100%) !important;
+  color: var(--color-ink-muted) !important;
   font-weight: 700 !important;
   text-align: center !important;
-  border-right: 1px solid #e6e8ef;
+  border-right: 1px solid var(--color-line);
 }
 
 table td.sticky-col-2 {
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
 }
 
 table tbody tr:nth-child(even) td.sticky-col-2 {
-  background-color: #fafbfc;
+  background-color: var(--color-surface-1);
 }
 
 table tbody tr:hover td.sticky-col-2 {
@@ -391,11 +395,11 @@ table tbody tr:hover td.sticky-col-2 {
 
 /* Zebra Striping — slightly more refined than the old #f8fafc */
 table tbody tr:nth-child(even) td {
-  background-color: #fafbfc;
+  background-color: var(--color-surface-1);
 }
 
 table tbody tr:nth-child(odd) td {
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
 }
 
 table tbody tr:hover td {
@@ -431,7 +435,7 @@ table.density-compact td {
 
 .card-sharp,
 .card-enterprise {
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
   border: 1px solid #e6e8ef;
   border-radius: 0.875rem;
   box-shadow: var(--shadow-elev-1);
@@ -446,7 +450,7 @@ table.density-compact td {
 
 /* New "elevated" card used for KPI tiles and section panels. */
 .card-elevated {
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
   border: 1px solid #e6e8ef;
   border-radius: 0.875rem;
   box-shadow: var(--shadow-elev-2);
@@ -482,7 +486,7 @@ input[type="date"].input-base {
   font-size: 0.8125rem;
   font-weight: 500;
   color: #0f172a;
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
   border: 1px solid #d6dbe6;
   border-radius: 0.5rem;
   box-shadow: 0 1px 0 0 rgba(15, 23, 42, 0.02);
@@ -502,11 +506,11 @@ input[type="date"].input-base {
   outline: none;
   border-color: var(--color-brand-500);
   box-shadow: 0 0 0 3px rgba(46, 82, 136, 0.18);
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
 }
 
 .input-base:disabled {
-  background-color: #f4f6fa;
+  background-color: var(--color-surface-2);
   color: #94a3b8;
   cursor: not-allowed;
 }
@@ -552,13 +556,13 @@ input[type="date"].input-base {
 }
 
 .btn-secondary {
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
   color: #334155;
   border: 1px solid #d6dbe6;
   box-shadow: 0 1px 0 0 rgba(15, 23, 42, 0.02);
 }
 .btn-secondary:hover:not(:disabled) {
-  background-color: #f8fafc;
+  background-color: var(--color-surface-1);
   border-color: #b6bfd0;
   color: #0f172a;
 }
@@ -569,12 +573,12 @@ input[type="date"].input-base {
   border: 1px solid transparent;
 }
 .btn-ghost:hover:not(:disabled) {
-  background-color: #f1f3f8;
+  background-color: var(--color-surface-2);
   color: #0f172a;
 }
 
 .btn-danger {
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
   color: #b91c1c;
   border: 1px solid #fecaca;
 }
@@ -703,7 +707,7 @@ input[type="date"].input-base {
   border-color: #e0f2fe;
 }
 .pill-muted {
-  background: #f4f6fa;
+  background: var(--color-surface-2);
   color: #475569;
   border-color: #e6e8ef;
 }
@@ -872,7 +876,7 @@ input[type="date"].input-base {
 /* On-screen presentation mode: larger type and calmer chrome for projecting
    in a room, without needing to actually print. */
 .presentation-mode {
-  background: #ffffff;
+  background: var(--color-surface-0);
 }
 .presentation-mode .pack-figure {
   font-variant-numeric: tabular-nums;
@@ -1002,3 +1006,100 @@ input[type="date"].input-base {
   background: linear-gradient(180deg, #080D16 0%, #0A1220 65%, #0C1729 100%);
   color: #C3CFDF;
 }
+
+/* ── Status pills in dark mode ────────────────────────────────────────────
+   These keep their hue -- amber still means watch, red still means risk --
+   but the tint is remixed for a dark ground. The light-mode values are
+   near-white washes that glow against a dark panel and stop reading as
+   badges at all. */
+[data-theme="dark"] .pill-warning {
+  background: #2E220B;
+  color: #F5C264;
+  border-color: #4D3A14;
+}
+[data-theme="dark"] .pill-danger {
+  background: #2E1315;
+  color: #F58A85;
+  border-color: #4E2124;
+}
+[data-theme="dark"] .pill-info {
+  background: #111F38;
+  color: #7FAAF0;
+  border-color: #20365A;
+}
+[data-theme="dark"] .pill-muted {
+  background: #1C2739;
+  color: #A3B2C6;
+  border-color: #31405A;
+}
+[data-theme="dark"] .pill-success {
+  background: #0C2A1C;
+  color: #5CD99A;
+  border-color: #1D4A33;
+}
+[data-theme="dark"] .btn-danger:hover:not(:disabled) {
+  background-color: #3A181B;
+}
+
+/* ── Brand used as TEXT in dark mode ──────────────────────────────────────
+   text-brand-700 and bg-brand-700 both resolve to --color-brand-700, so the
+   variable cannot be inverted for one without breaking the other: a primary
+   button needs that value to stay a solid navy behind white text, while a
+   chip label needs it to become light so it is legible on a dark surface.
+
+   Tailwind emits them as SEPARATE utility classes, though, so overriding
+   only the `text-` ones is precise and needs no component edits. The dark
+   end of the ramp is remapped to the light end; the `bg-` utilities are
+   deliberately untouched.
+
+   Without this, every navy label on a chip -- the active segmented control,
+   reason-code badges, drill-down links -- renders dark-on-dark and vanishes,
+   which is exactly what a screenshot of the RM Forecast screen showed. */
+[data-theme="dark"] .text-brand-600 { color: #7E9BC5; }
+[data-theme="dark"] .text-brand-700 { color: #9DB5D8; }
+[data-theme="dark"] .text-brand-800 { color: #B4C6E0; }
+[data-theme="dark"] .text-brand-900 { color: #CBD9EC; }
+[data-theme="dark"] .hover\:text-brand-700:hover { color: #B4C6E0; }
+[data-theme="dark"] .hover\:text-brand-600:hover { color: #9DB5D8; }
+
+/* Subtle brand-tinted surfaces (chip and panel backgrounds) need the
+   opposite treatment: light in light mode, dark in dark mode. */
+[data-theme="dark"] .bg-brand-50  { background-color: #14243F; }
+[data-theme="dark"] .bg-brand-100 { background-color: #1A2E4E; }
+[data-theme="dark"] .border-brand-100 { border-color: #1F3556; }
+[data-theme="dark"] .border-brand-200 { border-color: #274067; }
+
+/* Muted ink, lifted. A grey tuned to look "secondary" on white reads as
+   nearly absent on a dark panel -- perceived contrast falls off faster in
+   the dark. These sit a step brighter than a literal inversion would give. */
+[data-theme="dark"] {
+  --color-slate-400: #7D8EA6;
+  --color-slate-500: #9AAABF;
+  --color-slate-600: #B3C1D3;
+}
+
+/* The faint end of the ramp, as TEXT only.
+   text-slate-300 marks a deliberate absence -- the em-dash standing in for
+   "no data". It should stay quiet, but at the border value it disappears
+   entirely on a dark panel, which turns "nothing here" into "nothing
+   rendered". Lifted just enough to read as an intentional placeholder.
+   The border- utilities keep the darker value. */
+[data-theme="dark"] .text-slate-200 { color: #6E7F97; }
+[data-theme="dark"] .text-slate-300 { color: #61758F; }
+
+/* ── Sidebar opt-out, part two ────────────────────────────────────────────
+   The variable re-pinning above restores the light ramp INSIDE the sidebar,
+   but the `.text-slate-*` and `.text-brand-*` overrides added for dark mode
+   are class rules, and a class rule beats a variable substitution. They were
+   therefore reaching into the sidebar and dimming the navigation, which was
+   the very thing the opt-out existed to prevent.
+
+   These re-assert the light values at equal specificity plus the sidebar
+   scope, so they win where they should and nowhere else. */
+[data-theme="dark"] .app-sidebar .text-slate-200,
+[data-theme="dark"] .app-sidebar .text-slate-300 { color: #cbd5e1; }
+[data-theme="dark"] .app-sidebar .text-slate-400 { color: #94a3b8; }
+[data-theme="dark"] .app-sidebar .text-slate-500 { color: #94a3b8; }
+[data-theme="dark"] .app-sidebar .text-brand-600,
+[data-theme="dark"] .app-sidebar .text-brand-700 { color: #B4C6E0; }
+[data-theme="dark"] .app-sidebar .text-brand-300 { color: #7E9BC5; }

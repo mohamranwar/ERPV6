@@ -318,7 +318,7 @@ export default function App() {
         {/* Brand header */}
         <div className="px-4 py-4 border-b border-white/5 flex items-center justify-between gap-2 min-h-[3.75rem]">
           <div className={`flex items-center gap-2.5 min-w-0 ${sidebarPinned ? 'opacity-100' : 'lg:opacity-0 max-lg:opacity-100'} transition-opacity`}>
-            <div className="p-2 rounded-lg bg-gradient-to-br from-brand-500 to-violet-600 text-white shadow-lg shadow-brand-500/30 shrink-0">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-500/30 shrink-0">
               <Box className="w-4 h-4" />
             </div>
             {sidebarPinned && (
@@ -393,7 +393,7 @@ export default function App() {
                     } ${!sidebarPinned ? 'lg:justify-center' : ''}`}
                   >
                     {isActive && (
-                      <span className="absolute inset-y-1.5 start-0 w-0.5 bg-gradient-to-b from-brand-400 to-violet-500 rounded-e-full" />
+                      <span className="absolute inset-y-1.5 start-0 w-0.5 bg-gradient-to-b from-brand-400 to-brand-500 rounded-e-full" />
                     )}
                     <Icon
                       className={`w-4 h-4 shrink-0 transition-colors ${
@@ -412,7 +412,7 @@ export default function App() {
         <div className="px-3 py-3 border-t border-white/5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="relative shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-white text-[11px] font-extrabold shadow-lg shadow-brand-500/30">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-[11px] font-extrabold shadow-lg shadow-brand-500/30">
                 {currentUser.name
                   .split(' ')
                   .map((p) => p[0])
@@ -616,7 +616,7 @@ export default function App() {
           ref={configModalRef}
         >
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col border border-slate-200">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-brand-50 via-white to-violet-50">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-brand-50 via-white to-brand-50">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-lg bg-white border border-brand-100 text-brand-600 shadow-sm">
                   <Database className="w-4 h-4" />

@@ -954,7 +954,7 @@ export default function MasterDataScreen({
                                 u.item_type === 'global'
                                   ? 'bg-brand-50 text-brand-700 border border-brand-200'
                                   : u.item_type === 'material'
-                                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                                  ? 'bg-brand-50 text-purple-700 border border-purple-200'
                                   : 'bg-amber-50 text-amber-700 border border-amber-200'
                               }`}
                             >

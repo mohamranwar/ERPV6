@@ -597,7 +597,7 @@ export default function ProductionPlanScreen({
                 onClick={() => setReportView('machine')}
                 className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                   reportView === 'machine'
-                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    ? 'bg-brand-600 text-white shadow-2xs'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -607,7 +607,7 @@ export default function ProductionPlanScreen({
                 onClick={() => setReportView('sku')}
                 className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                   reportView === 'sku'
-                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    ? 'bg-brand-600 text-white shadow-2xs'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >

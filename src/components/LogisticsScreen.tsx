@@ -479,7 +479,7 @@ export default function LogisticsScreen({
         <button
           type="button"
           onClick={handleExportCSV}
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8.5px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded transition-colors shadow-2xs cursor-pointer"
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8.5px] font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded transition-colors shadow-2xs cursor-pointer"
           title="Export shipments report as CSV"
         >
           <Download className="w-2.5 h-2.5 text-white" /> Export Report (CSV)
@@ -494,7 +494,7 @@ export default function LogisticsScreen({
         <button
           type="button"
           onClick={handleCreateShipment}
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8.5px] font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded transition-colors shadow-2xs cursor-pointer"
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8.5px] font-semibold text-white bg-brand-700 hover:bg-purple-700 rounded transition-colors shadow-2xs cursor-pointer"
         >
           <Ship className="w-2.5 h-2.5 text-white" /> Log In-Transit Shipment
         </button>

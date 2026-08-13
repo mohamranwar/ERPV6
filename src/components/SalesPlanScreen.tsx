@@ -365,7 +365,7 @@ export default function SalesPlanScreen({
               id="btn_save_sales_grid"
               onClick={handleSaveGrid}
               disabled={Object.keys(gridEdits).length === 0 || !selectedChannelId}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
               Save Changes ({Object.keys(gridEdits).length})

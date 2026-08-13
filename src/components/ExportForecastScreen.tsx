@@ -1447,7 +1447,7 @@ export default function ExportForecastScreen({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm"
                 >
                   Save Stock Allocation
                 </button>
@@ -1829,7 +1829,7 @@ export default function ExportForecastScreen({
                     onClick={() => handleUpdateOrderStatus('ready_to_ship')}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
                       activeDrawerRecord.order_status === 'ready_to_ship'
-                        ? 'bg-emerald-600 text-white border-emerald-700'
+                        ? 'bg-brand-600 text-white border-emerald-700'
                         : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                     }`}
                   >

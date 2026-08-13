@@ -1442,7 +1442,7 @@ export default function DashboardScreen({
               >
                 <Bookmark className="w-3.5 h-3.5 text-white" />
                 <span className="max-w-[120px] sm:max-w-none truncate">{activePreset.name}</span>
-                <ChevronDown className="w-3 h-3 text-purple-200" />
+                <ChevronDown className="w-3 h-3 text-brand-200" />
               </button>
 
               {presetDropdownOpen && (

@@ -80,7 +80,7 @@ export default function LoginScreen() {
         {/* Decorative mesh */}
         <div className="pointer-events-none absolute inset-0 opacity-60">
           <div className="absolute -top-32 -right-24 w-[28rem] h-[28rem] rounded-full bg-brand-500/30 blur-3xl" />
-          <div className="absolute -bottom-40 -left-20 w-[26rem] h-[26rem] rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="absolute -bottom-40 -left-20 w-[26rem] h-[26rem] rounded-full bg-brand-400/20 blur-3xl" />
           <div
             className="absolute inset-0"
             style={{
@@ -114,7 +114,7 @@ export default function LoginScreen() {
           </div>
           <h2 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-balance">
             Plan, produce, and ship with one
-            <span className="block bg-gradient-to-r from-brand-200 via-white to-fuchsia-200 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-brand-200 via-white to-brand-200 bg-clip-text text-transparent">
               unified cockpit.
             </span>
           </h2>
